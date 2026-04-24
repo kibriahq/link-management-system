@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bulk URL Generator | LinkEngine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#f8f9ff",
+                    "surface-container": "#e5eeff",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#131b2e",
+                    "surface-container-highest": "#d3e4fe",
+                    "primary-fixed": "#dae1ff",
+                    "tertiary-fixed": "#89f5e7",
+                    "primary-container": "#0066ff",
+                    "on-secondary": "#ffffff",
+                    "primary": "#0050cb",
+                    "inverse-on-surface": "#eaf1ff",
+                    "on-surface": "#0b1c30",
+                    "inverse-surface": "#213145",
+                    "background": "#f8f9ff",
+                    "tertiary-container": "#008075",
+                    "tertiary": "#00655c",
+                    "surface-variant": "#d3e4fe",
+                    "on-primary-container": "#f8f7ff",
+                    "on-background": "#0b1c30",
+                    "on-tertiary-fixed-variant": "#005049",
+                    "on-error-container": "#93000a",
+                    "surface-bright": "#f8f9ff",
+                    "secondary-fixed": "#dae2fd",
+                    "secondary": "#565e74",
+                    "secondary-container": "#dae2fd",
+                    "inverse-primary": "#b3c5ff",
+                    "outline-variant": "#c2c6d8",
+                    "surface-container-lowest": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed": "#001849",
+                    "outline": "#727687",
+                    "surface-container-low": "#eff4ff",
+                    "on-surface-variant": "#424656",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "tertiary-fixed-dim": "#6bd8cb",
+                    "on-secondary-container": "#5c647a",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed": "#00201d",
+                    "on-tertiary": "#ffffff",
+                    "surface-dim": "#cbdbf5",
+                    "on-error": "#ffffff",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "on-primary-fixed-variant": "#003fa4",
+                    "surface-container-high": "#dce9ff",
+                    "on-tertiary-container": "#ddfff9",
+                    "primary-fixed-dim": "#b3c5ff",
+                    "surface-tint": "#0054d6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "lg": "24px",
+                    "container-max": "1440px",
+                    "sm": "8px",
+                    "xl": "40px",
+                    "gutter": "24px",
+                    "md": "16px",
+                    "base": "4px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "mono-sm": ["Inter"],
+                    "label-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "body-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "mono-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-sm": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .step-active { color: #0050cb; }
+        .step-complete { color: #008075; }
+    </style>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased">
+<!-- Side Navigation Bar -->
+<aside class="fixed left-0 top-0 h-screen w-[240px] border-r border-slate-200 bg-slate-50 flex flex-col py-6 px-4 z-50">
+<div class="mb-10 px-2 flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-sm" data-icon="link">link</span>
+</div>
+<div>
+<h1 class="text-lg font-bold tracking-tight text-slate-900">LinkEngine</h1>
+<p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Enterprise URL Admin</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 transition-colors duration-150 rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 transition-colors duration-150 rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="link">link</span>
+<span class="font-label-md text-label-md">URL Management</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-blue-600 bg-blue-50 font-semibold border-r-2 border-blue-600 rounded-l-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+<span class="font-label-md text-label-md">Bulk Generator</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 transition-colors duration-150 rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 transition-colors duration-150 rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-slate-200 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 transition-colors duration-150 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 transition-colors duration-150 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-label-md text-label-md">Documentation</span>
+</a>
+</div>
+</aside>
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 right-0 w-[calc(100%-240px)] h-16 border-b border-slate-200 bg-white/80 backdrop-blur-md z-40 flex items-center justify-between px-8">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-slate-50 border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="Search campaigns or domains..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+<div class="h-8 w-px bg-slate-200 mx-2"></div>
+<div class="flex items-center gap-3 pl-2 cursor-pointer">
+<div class="text-right">
+<p class="text-xs font-bold text-slate-900 leading-none">Alex Rivera</p>
+<p class="text-[10px] text-slate-500 font-medium uppercase mt-1">Admin</p>
+</div>
+<img class="w-10 h-10 rounded-full border border-slate-200 object-cover" data-alt="close up headshot of a professional young man in a grey suit with a confident smile against a neutral studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkxxhz5WXc4IwN35qviGmdSBC6EMFKnC7LevJcgqml-Ab-gJnzl4eP8IEShozELuR8XGuyN4kTt1lOWV32yIoTcbkRAjfP100LyOiMB53D8iyMt8Hf8tSQUppGWVdykbuc52SOkORzxOeMmo1NXbnQmfEVkmqxk2xLlKmbAgxB7LuwAAede-tj7gpHbxq7f4N7n0nxae80tBhdzRpKDlbjyHjbsLUkCvSGVozXiVfCTNraYdbi01x5r3pEBf1P5mydNlMXKZplKY4"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="ml-[240px] pt-16 min-h-screen">
+<div class="max-w-[1000px] mx-auto py-12 px-8">
+<!-- Page Header -->
+<div class="mb-10">
+<div class="flex items-center gap-2 mb-2">
+<span class="text-primary font-bold uppercase tracking-widest text-[10px]">Operations Center</span>
+</div>
+<h2 class="font-display-lg text-display-lg text-slate-900">Bulk URL Generator</h2>
+<p class="text-body-md font-body-md text-slate-500 mt-2">Automate the creation of high-volume marketing and operational link batches.</p>
+</div>
+<!-- Progress Tracker -->
+<div class="mb-12">
+<div class="flex justify-between items-center mb-4">
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-lg shadow-primary/20">1</div>
+<span class="text-xs font-bold text-primary uppercase">General Settings</span>
+</div>
+<div class="h-px flex-1 bg-slate-200 mx-4 mt-[-20px]"></div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-10 h-10 rounded-full bg-slate-100 text-slate-400 border border-slate-200 flex items-center justify-center font-bold">2</div>
+<span class="text-xs font-bold text-slate-400 uppercase">Configuration</span>
+</div>
+<div class="h-px flex-1 bg-slate-200 mx-4 mt-[-20px]"></div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-10 h-10 rounded-full bg-slate-100 text-slate-400 border border-slate-200 flex items-center justify-center font-bold">3</div>
+<span class="text-xs font-bold text-slate-400 uppercase">Assignments</span>
+</div>
+</div>
+</div>
+<!-- Multi-Step Form Container -->
+<div class="space-y-8">
+<!-- Step 1: General Settings Card -->
+<section class="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+<div class="flex items-start gap-4 mb-8">
+<div class="p-3 bg-blue-50 rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="settings_input_component">settings_input_component</span>
+</div>
+<div>
+<h3 class="text-headline-sm font-headline-sm text-slate-900">Step 1: General Settings</h3>
+<p class="text-body-sm font-body-sm text-slate-500">Define the core identity for this bulk generation campaign.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-slate-700 block">Campaign Name</label>
+<input class="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="e.g. Summer 2024 Newsletter" type="text"/>
+<p class="text-xs text-slate-400 italic">This name is for internal tracking and will not appear in the URL.</p>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-slate-700 block">Domain / Subdomain</label>
+<select class="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+<option>link.engine.io</option>
+<option>go.marketing.net</option>
+<option>secure.shortener.app</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Step 2: Configuration Card -->
+<section class="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+<div class="flex items-start gap-4 mb-8">
+<div class="p-3 bg-blue-50 rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="tune">tune</span>
+</div>
+<div>
+<h3 class="text-headline-sm font-headline-sm text-slate-900">Step 2: Configuration</h3>
+<p class="text-body-sm font-body-sm text-slate-500">Set the parameters for link structure and generation volume.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-slate-700 block">Number of URLs to generate</label>
+<div class="relative">
+<input class="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg font-mono-sm text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" type="number" value="1000"/>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">MAX 50,000</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-slate-700 block">Slug Generation Pattern</label>
+<div class="flex items-center gap-2">
+<button class="flex-1 px-4 py-3 bg-primary/5 border-2 border-primary rounded-lg text-primary font-bold text-sm">RANDOM ALPHANUMERIC</button>
+<button class="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-lg text-slate-500 font-bold text-sm hover:bg-slate-50">SEQUENTIAL</button>
+</div>
+</div>
+<div class="md:col-span-2 space-y-2">
+<label class="font-label-md text-label-md text-slate-700 block">Destination URL Pattern</label>
+<div class="flex flex-col gap-3">
+<div class="flex items-center border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
+<div class="px-4 py-3 bg-slate-50 border-r border-slate-200 text-slate-500 font-mono-sm">https://yoursite.com/product/</div>
+<input class="flex-1 px-4 py-3 border-none focus:ring-0 text-primary font-mono-sm" placeholder="{dynamic_id}" type="text"/>
+</div>
+<p class="text-xs text-slate-500 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="info">info</span>
+                                    Use <code class="bg-slate-100 px-1 rounded text-primary">{dynamic_id}</code> to insert a unique identifier from your CSV data mapping.
+                                </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Step 3: Assignments Card (Optional) -->
+<section class="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+<div class="flex items-start gap-4 mb-8">
+<div class="p-3 bg-blue-50 rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="group_add">group_add</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="text-headline-sm font-headline-sm text-slate-900">Step 3: Assignments</h3>
+<span class="px-2 py-0.5 bg-slate-100 text-[10px] font-bold text-slate-500 rounded uppercase">Optional</span>
+</div>
+<p class="text-body-sm font-body-sm text-slate-500">Restrict campaign management to specific team members.</p>
+</div>
+</div>
+<div class="space-y-4">
+<label class="font-label-md text-label-md text-slate-700 block">Assigned Team Members</label>
+<div class="flex flex-wrap gap-2 mb-4">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-full">
+<img class="w-5 h-5 rounded-full object-cover" data-alt="professional portrait of a smiling woman with glasses and dark hair in a clean corporate setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBf2mvT8fV60FixbsAMVKqa8CPH-_lnKwjD7wB-O-NuMRCd7xk36445KpTaMQeMdWzrqskF0ztNPz3lASHWuES5S1jtKZBKK5yZ96JQI71OtyNV-CkZom2fMAJgee02YCuZ5M1C3tNl99cWNGc4ZaRXhoUNt4R5QymAG84EAmmGwE0vh-9KLcP3G-POHHMKRlM7Fp_x_doazWsLEVHeQ_5PRLZlNWdlWPu6BZWCAz3muCLbPTxGtxcg3BO9G2BMlDZ28R1QqmRFRg4"/>
+<span class="text-xs font-bold text-primary">Sarah Chen</span>
+<span class="material-symbols-outlined text-sm text-primary cursor-pointer" data-icon="close">close</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-full">
+<img class="w-5 h-5 rounded-full object-cover" data-alt="headshot of a middle-aged male executive with short hair and a friendly expression, soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJfDaU2Xdg3CRPIYh29gVjr6V68syUVSHPUVZPl-jYn98gGMMDUUP-w7RwUHhghMcKNFRHxPUrXqbsOFnM0Lqovhyc13QH4NSLE99vwY9FyjezNTWy36e9YT-HJcWN_IlpS9WSt6Ag11-BaX1ydD-a_r3ZVcQeewro9ni9p_DagZlL5aqwekq96TOYfNsrPPbkRxoAMuj0FBRehwLIu1PNkCW4WWfKtT0_6hRvUMYbYtstEvDXQdmlGcA8rFhYVMfaFOTIICQwwLU"/>
+<span class="text-xs font-bold text-primary">Marcus Thorne</span>
+<span class="material-symbols-outlined text-sm text-primary cursor-pointer" data-icon="close">close</span>
+</div>
+<button class="flex items-center gap-2 px-3 py-1.5 border border-dashed border-slate-300 rounded-full hover:border-primary hover:bg-slate-50 transition-all text-slate-500 hover:text-primary">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+<span class="text-xs font-bold">Add Member</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Final Action Bar -->
+<div class="pt-6 flex items-center justify-between">
+<button class="px-6 py-3 text-slate-600 font-bold hover:text-slate-900 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+                        Cancel Operation
+                    </button>
+<div class="flex items-center gap-4">
+<button class="px-6 py-3 bg-white border border-slate-200 text-slate-900 font-bold rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+                            Save Draft
+                        </button>
+<button class="px-8 py-3 bg-primary-container text-on-primary-container font-bold rounded-lg hover:opacity-90 transition-opacity flex items-center gap-3 shadow-xl shadow-primary-container/20">
+<span class="material-symbols-outlined" data-icon="rocket_launch">rocket_launch</span>
+                            Generate and Export CSV
+                        </button>
+</div>
+</div>
+</div>
+<!-- Batch History (Contextual Footer) -->
+<div class="mt-24">
+<div class="flex items-center justify-between mb-6">
+<h4 class="text-label-md font-bold text-slate-900 uppercase tracking-widest">Recent Bulk Batches</h4>
+<a class="text-sm font-bold text-primary hover:underline" href="#">View all history</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white p-4 border border-slate-100 rounded-lg flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-teal-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-teal-600" data-icon="check_circle">check_circle</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-900 truncate">Newsletter_Oct_Final</p>
+<p class="text-[10px] text-slate-400">12,500 links • 2h ago</p>
+</div>
+</div>
+<div class="bg-white p-4 border border-slate-100 rounded-lg flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-teal-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-teal-600" data-icon="check_circle">check_circle</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-900 truncate">SMS_Promo_V3</p>
+<p class="text-[10px] text-slate-400">5,000 links • 5h ago</p>
+</div>
+</div>
+<div class="bg-white p-4 border border-slate-100 rounded-lg flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-blue-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-600" data-icon="cloud_download">cloud_download</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-900 truncate">Referral_Bounty_Batch</p>
+<p class="text-[10px] text-slate-400">Ready for download</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
