@@ -7,24 +7,26 @@ import { AuthProvider } from "@/lib/AuthContext";
 import Sidebar from "@/components/Sidebar";
 import TopNav from "@/components/TopNav";
 import { useRouter, usePathname } from 'next/navigation';
+import LoadingScreen from './LoadingScreen';
 
 function Children({ children }: { children: React.ReactNode }) {
     const { session, user, loading } = useAuth();
     const router = useRouter();
     const pathname = usePathname()
 
-    console.log(pathname);
+    if (loading) {
+        return <LoadingScreen />
+    }
 
-    // useEffect(() => {
-    //     if (!session) {
-    //         router.push("/login");
-    //     }
-    //     console.log('called');
-
-    // }, [router]);
-
+    
+    
     if (!session) {
-        return children
+        if (pathname === '/login' || pathname === '/signup') {
+            return children
+        } else {
+            router.push('/login');
+            return;
+        }
     } else {
         if (pathname === '/login' || pathname === '/signup') {
             router.push('/');
