@@ -74,3 +74,19 @@ input, select, button {
   letter-spacing: -0.01em;
   font-weight: 600;
 }
+
+.hidden {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .lg\:flex {
+    display: flex;
+  }
+  .lg\:w-1\/2 {
+    width: 50%;
+  }
+  .lg\:hidden {
+    display: none;
+  }
+}

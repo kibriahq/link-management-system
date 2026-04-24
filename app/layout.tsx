@@ -3,12 +3,14 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { LinkProvider } from "@/lib/LinkContext";
 import { SidebarProvider } from "@/lib/SidebarContext";
+import { AuthProvider } from "@/lib/AuthContext";
 import Sidebar from "@/components/Sidebar";
 import TopNav from "@/components/TopNav";
+import Children from "@/components/Children";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: "LinkEngine - Enterprise URL Management",
   description: "Manage your enterprise URLs with ease",
 };
@@ -27,17 +29,11 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <LinkProvider>
-          <SidebarProvider>
-            <Sidebar />
-            <TopNav />
-            <main className="lg:ml-[240px] pt-16 min-h-screen bg-[#f8f9ff]">
-              <div className="max-w-[1440px] mx-auto p-4 lg:p-8">
-                {children}
-              </div>
-            </main>
-          </SidebarProvider>
-        </LinkProvider>
+        <AuthProvider>
+          <LinkProvider>
+            <Children>{children}</Children>
+          </LinkProvider>
+        </AuthProvider>
       </body>
     </html>
   );

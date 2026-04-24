@@ -141,9 +141,9 @@ export default function ManagePage() {
         <table className="w-full text-left border-collapse">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th className="py-3 px-4 w-10">
-                <input className="rounded-sm border-slate-300 text-[#0050cb] focus:ring-[#0050cb]/20" type="checkbox" />
-              </th>
+              {/* <th className="py-3 px-4 w-10">
+                <input onChange={() => {}} className="rounded-sm border-slate-300 text-[#0050cb] focus:ring-[#0050cb]/20" type="checkbox" />
+              </th> */}
               <th className="py-3 px-4 text-sm font-semibold text-slate-600">Short URL</th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600">Current Destination</th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600">Assigned User</th>
@@ -155,9 +155,9 @@ export default function ManagePage() {
           <tbody className="divide-y divide-slate-100">
             {filteredLinks.map((link) => (
               <tr key={link.id} className={`hover:bg-slate-50 transition-colors ${link.status === 'inactive' || link.status === 'expired' ? 'opacity-70 grayscale-[0.3]' : ''}`}>
-                <td className="py-3 px-4">
+                {/* <td className="py-3 px-4">
                   <input className="rounded-sm border-slate-300 text-[#0050cb] focus:ring-[#0050cb]/20" type="checkbox" />
-                </td>
+                </td> */}
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2 group">
                     <span className="font-mono text-[#0050cb] font-semibold cursor-pointer">lnke.ng/{link.shortCode}</span>
@@ -248,7 +248,7 @@ export default function ManagePage() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-500">Page</span>
-            <input className="w-10 text-center py-1 border-slate-200 rounded-lg text-sm font-medium focus:ring-[#0050cb]/20 focus:border-[#0050cb]" type="text" value="1" />
+            <input disabled className="w-10 text-center py-1 border-slate-200 rounded-lg text-sm font-medium focus:ring-[#0050cb]/20 focus:border-[#0050cb]" type="text" value="1" />
             <span className="text-sm text-slate-500">of {Math.ceil(links.length / 10)}</span>
           </div>
         </div>
