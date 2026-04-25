@@ -73,7 +73,7 @@ export default function SignupPage() {
     setIsLoading(false);
   };
 
-
+  return <h1>Under Construction</h1>
   return (
     <AuthLayout>
       <form onSubmit={handleSubmit} className="space-y-4">
