@@ -6,7 +6,7 @@ import Link from 'next/link';
 export default function Dashboard() {
   const { links, activity } = useLinks();
 
-  const totalScans = links.reduce((acc, link) => acc + link.scans, 0);
+  const totalLinks = links.length;
   const activeUrls = links.filter((l) => l.status === 'active').length;
   const registeredUsers = 8520;
   const systemHealth = 99.9;
@@ -22,11 +22,11 @@ export default function Dashboard() {
         <div className="bg-white border border-slate-200 p-4 rounded-xl flex flex-col justify-between group hover:border-[#0050cb] transition-colors">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-slate-500">Total Scans</span>
+              <span className="text-sm font-semibold text-slate-500">Total Links</span>
               <span className="text-xs font-bold text-[#00655c] px-2 py-0.5 bg-[#00655c]/10 rounded-full">+12.4%</span>
             </div>
             <div className="font-mono text-2xl font-semibold tracking-tight text-slate-900">
-              {totalScans.toLocaleString()}
+              {totalLinks.toLocaleString()}
             </div>
           </div>
           <div className="mt-4 h-12 w-full relative">
@@ -115,18 +115,18 @@ export default function Dashboard() {
                     <tr key={link.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-slate-900">/{link.shortCode}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">ID: {link.id.padStart(4, '0')}</span>
+                          <span className="text-sm font-semibold text-slate-900">/{link.slug}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">ID: {link.id}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2 group">
-                          <span className="text-sm text-slate-600 truncate max-w-[200px]">{link.destinationUrl}</span>
+                          <span className="text-sm text-slate-600 truncate max-w-[200px]">{link.url}</span>
                           <button className="material-symbols-outlined text-slate-300 group-hover:text-[#0050cb] cursor-pointer text-sm">content_copy</button>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm font-semibold font-mono text-slate-900">{link.scans.toLocaleString()}</span>
+                        <span className="text-sm font-semibold font-mono text-slate-900">{link.name || '-'}</span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tight ${

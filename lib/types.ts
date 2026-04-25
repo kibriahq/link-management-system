@@ -1,14 +1,18 @@
 export interface LinkItem {
-  id: string;
-  shortCode: string;
-  destinationUrl: string;
-  scans: number;
-  createdAt: string;
-  lastActivity: string;
+  id: number;
+  name?: string;
+  slug: string;
+  url?: string;
   userId?: string;
-  userName?: string;
-  userAvatar?: string;
-  status: 'active' | 'inactive' | 'expired';
+  createdAt: string;
+  status?: 'active' | 'inactive' | 'expired';
+}
+
+export type InputLink = {
+  name: string | null,
+  slug: string;
+  url: string | null;
+  userId: string | null;
 }
 
 export interface BulkBatch {
@@ -37,13 +41,15 @@ export interface User {
 
 export interface LinkContextType {
   links: LinkItem[];
-  addLink: (link: LinkItem) => void;
-  updateLink: (id: string, updates: Partial<LinkItem>) => void;
-  deleteLink: (id: string) => void;
-  incrementScan: (id: string) => void;
+  getSlugs: () => Promise<string[]>;
+  addLink: (link: LinkItem) => Promise<void>;
+  addBulkLinks: (links: InputLink[]) => Promise<void>;
+  updateLink: (id: number, updates: Partial<LinkItem>) => Promise<void>;
+  deleteLink: (id: number) => Promise<void>;
   bulkBatches: BulkBatch[];
-  addBulkBatch: (batch: BulkBatch) => void;
   activity: ActivityItem[];
-  addActivity: (activity: ActivityItem) => void;
+  addActivity: (activity: ActivityItem) => Promise<void>;
   users: User[];
+  loading: boolean;
+  refetch: () => Promise<void>;
 }

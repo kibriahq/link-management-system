@@ -2,31 +2,39 @@
 
 import { useState } from 'react';
 import { useLinks } from '@/lib/LinkContext';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function ManagePage() {
   const { links, updateLink, deleteLink } = useLinks();
   const [filter, setFilter] = useState<'active' | 'inactive'>('active');
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
+  const { baseUrl } = useAuth();
 
-  const filteredLinks = links.filter((link) => 
+  const filteredLinks = links.filter((link) =>
     filter === 'active' ? link.status === 'active' : link.status !== 'active'
   );
 
   const handleEdit = (link: typeof links[0]) => {
     setEditingId(link.id);
-    setEditValue(link.destinationUrl);
+    setEditValue(link.url || '');
   };
 
-  const handleSave = (id: string) => {
-    updateLink(id, { destinationUrl: editValue });
+  const handleSave = (id: number) => {
+    updateLink(id, { url: editValue });
     setEditingId(null);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this link?')) {
       deleteLink(id);
     }
+  };
+
+  const copyToClipboard = (slug: string) => {
+    navigator.clipboard.writeText(`${baseUrl}${slug}`).then(() => {
+      alert('Copied to clipboard');
+    });
   };
 
   return (
@@ -41,17 +49,15 @@ export default function ManagePage() {
             <div className="flex bg-slate-100 p-1 rounded-xl">
               <button
                 onClick={() => setFilter('active')}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                  filter === 'active' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'
-                }`}
+                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${filter === 'active' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'
+                  }`}
               >
                 Active
               </button>
               <button
                 onClick={() => setFilter('inactive')}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                  filter === 'inactive' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'
-                }`}
+                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${filter === 'inactive' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'
+                  }`}
               >
                 Inactive
               </button>
@@ -75,13 +81,13 @@ export default function ManagePage() {
 
         <div className="bg-white border border-slate-200 p-4 rounded-xl">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Scans</span>
-            <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">qr_code_scanner</span>
+            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Links</span>
+            <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">link</span>
           </div>
-          <div className="font-mono text-2xl font-semibold text-slate-900">{links.reduce((a, l) => a + l.scans, 0).toLocaleString()}</div>
+          <div className="font-mono text-2xl font-semibold text-slate-900">{links.length.toLocaleString()}</div>
           <div className="mt-2 flex items-center gap-1 text-xs font-bold text-[#00655c]">
             <span className="material-symbols-outlined text-sm">trending_up</span>
-            +24% vs last month
+            {links.filter(l => l.status === 'active').length} active
           </div>
         </div>
 
@@ -141,27 +147,30 @@ export default function ManagePage() {
         <table className="w-full text-left border-collapse">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              {/* <th className="py-3 px-4 w-10">
-                <input onChange={() => {}} className="rounded-sm border-slate-300 text-[#0050cb] focus:ring-[#0050cb]/20" type="checkbox" />
-              </th> */}
+              <th className="py-3 px-4 w-10">
+                {/* <input onChange={() => {}} className="rounded-sm border-slate-300 text-[#0050cb] focus:ring-[#0050cb]/20" type="checkbox" /> */}
+                <p className="py-3 px-4 text-sm font-semibold text-slate-600">Id</p>
+              </th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600">Short URL</th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600">Current Destination</th>
+              <th className="py-3 px-4 text-sm font-semibold text-slate-600">Name</th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600">Assigned User</th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600">Total Scans</th>
-              <th className="py-3 px-4 text-sm font-semibold text-slate-600">Last Scanned</th>
+              <th className="py-3 px-4 text-sm font-semibold text-slate-600">Date</th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filteredLinks.map((link) => (
               <tr key={link.id} className={`hover:bg-slate-50 transition-colors ${link.status === 'inactive' || link.status === 'expired' ? 'opacity-70 grayscale-[0.3]' : ''}`}>
-                {/* <td className="py-3 px-4">
-                  <input className="rounded-sm border-slate-300 text-[#0050cb] focus:ring-[#0050cb]/20" type="checkbox" />
-                </td> */}
+
+                <td className="py-3 px-4">
+                  <p className="py-3 px-4 text-sm font-semibold text-slate-600">{link.id}</p>
+                </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2 group">
-                    <span className="font-mono text-[#0050cb] font-semibold cursor-pointer">lnke.ng/{link.shortCode}</span>
-                    <button className="material-symbols-outlined text-sm text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">content_copy</button>
+                    <span className="font-mono text-[#0050cb] font-semibold cursor-pointer">/{link.slug}</span>
+                    <button onClick={() => copyToClipboard(link.slug)} className="material-symbols-outlined text-sm text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">content_copy</button>
                   </div>
                 </td>
                 <td className="py-3 px-4">
@@ -182,7 +191,7 @@ export default function ManagePage() {
                           className="bg-transparent border-none focus:ring-0 text-sm text-slate-600 w-full truncate pr-6 group-hover:text-slate-900"
                           readOnly
                           type="text"
-                          value={link.destinationUrl}
+                          value={link.url || ''}
                         />
                         <button
                           onClick={() => handleEdit(link)}
@@ -196,31 +205,31 @@ export default function ManagePage() {
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
-                    {link.userAvatar ? (
-                      <img alt="Avatar" className="w-6 h-6 rounded-full" src={link.userAvatar} />
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">
-                        {link.userName?.split(' ').map(n => n[0]).join('') || '?'}
-                      </div>
-                    )}
-                    <span className="text-sm text-slate-700">{link.userName || 'Unassigned'}</span>
+                    <span className="text-sm text-slate-700 text-center">{link.name || '-'}</span>
                   </div>
                 </td>
                 <td className="py-3 px-4">
-                  <div className="font-mono text-sm text-slate-900">{link.scans.toLocaleString()}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-700 text-center">{link.userId || '-'}</span>
+                  </div>
                 </td>
                 <td className="py-3 px-4">
-                  <div className="text-sm text-slate-500 whitespace-nowrap">{link.lastActivity}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-700 text-center">{'-'}</span>
+                  </div>
+                </td>
+                <td className="py-3 px-4">
+                  <div className="text-sm text-slate-500 whitespace-nowrap">{new Date(link.createdAt).toLocaleDateString()}</div>
                 </td>
                 <td className="py-3 px-4 text-right">
                   <div className="flex justify-end gap-1">
-                    <button
+                    {/* <button
                       onClick={() => handleEdit(link)}
                       className="p-1.5 text-slate-400 hover:text-[#0050cb] hover:bg-blue-50 rounded-lg transition-colors"
                       title="Edit URL"
                     >
                       <span className="material-symbols-outlined text-sm">edit</span>
-                    </button>
+                    </button> */}
                     <button className="p-1.5 text-slate-400 hover:text-[#0050cb] hover:bg-blue-50 rounded-lg transition-colors" title="Generate QR Code">
                       <span className="material-symbols-outlined text-sm">qr_code_2</span>
                     </button>

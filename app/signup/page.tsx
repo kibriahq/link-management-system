@@ -194,7 +194,7 @@ export default function SignupPage() {
           )}
         </button>
 
-        <div className="relative my-6">
+        {/* <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-slate-200"></div>
           </div>
@@ -215,7 +215,7 @@ export default function SignupPage() {
             <path d="M9 3.75c1.35 0 2.57.47 3.53 1.38l2.67-2.67C13.46.98 11.42 0 9 0S4.54.98 1.8 2.46l2.91 2.24C4.52 5.39 6.57 3.75 9 3.75z" fill="#EA4335" />
           </svg>
           Continue with Google
-        </button>
+        </button> */}
        
       </form> 
     </AuthLayout>

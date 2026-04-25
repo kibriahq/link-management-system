@@ -1,30 +1,99 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useLinks } from '@/lib/LinkContext';
-import { BulkBatch } from '@/lib/types';
+import { BulkBatch, LinkItem, InputLink } from '@/lib/types';
+import { useAuth } from '@/lib/AuthContext';
+
+function generateShortCode(length: number = 8): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+function generateCSV(links: InputLink[], domain: string): string {
+  const headers = ['Link', 'Redirect', 'Created At'];
+  const rows = links.map(link => [
+    domain + link.slug,
+    link.url || '',
+    new Date().toISOString(),
+  ]);
+  return [headers, ...rows].map(row => row.join(',')).join('\n');
+}
 
 export default function BulkGeneratorPage() {
-  const { bulkBatches, addBulkBatch } = useLinks();
+  const { getSlugs, addLink, addBulkLinks, users } = useLinks();
   const [step, setStep] = useState(1);
-  const [campaignName, setCampaignName] = useState('');
-  const [domain, setDomain] = useState('link.engine.io');
-  const [urlCount, setUrlCount] = useState(1000);
-  const [slugPattern, setSlugPattern] = useState<'random' | 'sequential'>('random');
+  const [batchName, setBatchName] = useState('');
+
+  const [urlCount, setUrlCount] = useState(100);
+  const [destinationUrl, setDestinationUrl] = useState('');
   const [destinationPattern, setDestinationPattern] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
-  const handleGenerate = () => {
-    const newBatch: BulkBatch = {
-      id: Date.now().toString(),
-      name: campaignName || `Batch_${Date.now()}`,
-      linkCount: urlCount,
-      createdAt: 'Just now',
-      status: 'ready',
-    };
-    addBulkBatch(newBatch);
-    alert(`Generated ${urlCount} URLs successfully!`);
-  };
+  const { domain, baseUrl } = useAuth();
+
+
+  const handleGenerate = useCallback(async () => {
+    console.time('test')
+    if (urlCount < 1 || urlCount > 50000) {
+      alert('Please enter a valid number between 1 and 50,000');
+      return;
+    }
+    if (!destinationUrl) {
+      alert('Please enter a destination URL');
+      return;
+    }
+
+    const generatedLinks: InputLink[] = [];
+    const usedCodes = new Set<string>();
+
+    // getSlugs may be async - await and add each existing slug into the set
+    try {
+      const existingSlugs = await getSlugs();
+      existingSlugs.forEach((s) => usedCodes.add(s));
+    } catch (err) {
+      console.error('Failed to load existing slugs', err);
+    }
+
+    for (let i = 0; i < urlCount; i++) {
+      let slug = generateShortCode(8);
+      while (usedCodes.has(slug)) {
+        slug = generateShortCode(8);
+      }
+      usedCodes.add(slug);
+
+      generatedLinks.push({
+        name: batchName || null,
+        slug,
+        url: destinationUrl,
+        userId: null,
+      });
+    }
+
+    addBulkLinks(generatedLinks);
+
+
+    console.timeEnd('test');
+
+    // generatedLinks.forEach(link => addLink(link));
+
+    // const csvContent = generateCSV(generatedLinks, `${protocol}//${domain}/${path}/`);
+    // const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // const url = URL.createObjectURL(blob);
+    // const link = document.createElement('a');
+    // link.href = url;
+    // link.download = `${batchName || 'bulk_links'}_${Date.now()}.csv`;
+    // document.body.appendChild(link);
+    // link.click();
+    // document.body.removeChild(link);
+    // URL.revokeObjectURL(url);
+
+    // alert(`Generated ${urlCount} URLs and downloaded CSV successfully!`);
+  }, [urlCount, destinationUrl, batchName, domain, addLink, addBulkLinks, users, selectedUsers, getSlugs]);
 
   const toggleUser = (userId: string) => {
     setSelectedUsers((prev) =>
@@ -36,7 +105,7 @@ export default function BulkGeneratorPage() {
 
   const mockUsers = [
     { id: '1', name: 'Sarah Chen', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBf2mvT8fV60FixbsAMVKqa8CPH-_lnKwjD7wB-O-NuMRCd7xk36445KpTaMQeMdWzrqskF0ztNPz3lASHWuES5S1jtKZBKK5yZ96JQI71OtyNV-CkZom2fMAJgee02YCuZ5M1C3tNl99cWNGc4ZaRXhoUNt4R5QymAG84EAmmGwE0vh-9KLcP3G-POHHMKRlM7Fp_x_doazWsLEVHeQ_5PRLZlNWdlWPu6BZWCAz3muCLbPTxGtxcg3BO9G2BMlDZ28R1QqmRFRg4' },
-    { id: '2', name: 'Marcus Thorne', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCJfDaU2Xdg3CRPIYh29gVjr6V68syUVSHPUVZPl-jYn98gGMMDUUP-w7RwUHhghMcKNFRHxPUrXqbsOFnM0Lqovhyc13QH4NSLE99vwY9FyjezNTWy36e9YT-HJcWN_IlpS9WSt6Ag11-BaX1ydD-a_r3ZVcQeewro9ni9p_DagZlL5aqwekq96TOYfNsrPPbkRxoAMuj0FBRehwLIu1PNkCW4WWfKtT0_6hRvUMYbYtstEvDXQdmlGcA8rFhYVMfaFOTIICQwwLU' },
+    // { id: '2', name: 'Marcus Thorne', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCJfDaU2Xdg3CRPIYh29gVjr6V68syUVSHPUVZPl-jYn98gGMMDUUP-w7RwUHhghMcKNFRHxPUrXqbsOFnM0Lqovhyc13QH4NSLE99vwY9FyjezNTWy36e9YT-HJcWN_IlpS9WSt6Ag11-BaX1ydD-a_r3ZVcQeewro9ni9p_DagZlL5aqwekq96TOYfNsrPPbkRxoAMuj0FBRehwLIu1PNkCW4WWfKtT0_6hRvUMYbYtstEvDXQdmlGcA8rFhYVMfaFOTIICQwwLU' },
   ];
 
   return (
@@ -83,31 +152,30 @@ export default function BulkGeneratorPage() {
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-slate-900">Step 1: General Settings</h3>
-                <p className="text-sm text-slate-500">Define the core identity for this bulk generation campaign.</p>
+                <p className="text-sm text-slate-500">Define the core identity for this bulk generation</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 block">Campaign Name</label>
+                <label className="text-sm font-semibold text-slate-700 block">Batch Name</label>
                 <input
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-base focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all"
-                  placeholder="e.g. Summer 2024 Newsletter"
+                  placeholder="e.g. Summer 2026 Newsletter"
                   type="text"
-                  value={campaignName}
-                  onChange={(e) => setCampaignName(e.target.value)}
+                  value={batchName}
+                  onChange={(e) => setBatchName(e.target.value)}
                 />
                 <p className="text-xs text-slate-400 italic">This name is for internal tracking and will not appear in the URL.</p>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700 block">Domain / Subdomain</label>
                 <select
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-base focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all"
+                  className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-500 rounded-lg text-base focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all"
                   value={domain}
-                  onChange={(e) => setDomain(e.target.value)}
+                  disabled
                 >
-                  <option>link.engine.io</option>
-                  <option>go.marketing.net</option>
-                  <option>secure.shortener.app</option>
+                  <option>Select Domain</option>
+                  <option>{domain}</option>
                 </select>
               </div>
             </div>
@@ -146,45 +214,31 @@ export default function BulkGeneratorPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 block">Slug Generation Pattern</label>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setSlugPattern('random')}
-                    className={`flex-1 px-4 py-3 rounded-lg text-sm font-bold transition-all ${slugPattern === 'random'
-                        ? 'bg-[#0050cb]/5 border-2 border-[#0050cb] text-[#0050cb]'
-                        : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50'
-                      }`}
-                  >
-                    RANDOM ALPHANUMERIC
-                  </button>
-                  <button
-                    onClick={() => setSlugPattern('sequential')}
-                    className={`flex-1 px-4 py-3 rounded-lg text-sm font-bold transition-all ${slugPattern === 'sequential'
-                        ? 'bg-[#0050cb]/5 border-2 border-[#0050cb] text-[#0050cb]'
-                        : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50'
-                      }`}
-                  >
-                    SEQUENTIAL
-                  </button>
+                <label className="text-sm font-semibold text-slate-700 block">Destination URL</label>
+                <div className="relative">
+                  <input
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg font-mono text-base focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all"
+                    type="url"
+                    value={destinationUrl}
+                    onChange={(e) => setDestinationUrl(e.target.value)}
+                    placeholder='e.g. https://yoursite.com/product/{dynamic_id}'
+                  />
                 </div>
               </div>
               <div className="md:col-span-2 space-y-2">
-                <label className="text-sm font-semibold text-slate-700 block">Destination URL Pattern</label>
+                <label className="text-sm font-semibold text-slate-700 block">URL Pattern</label>
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-[#0050cb]/20 focus-within:border-[#0050cb] transition-all">
-                    <div className="px-4 py-3 bg-slate-50 border-r border-slate-200 text-slate-500 font-mono text-sm">https://yoursite.com/product/</div>
+                    <div className="px-4 py-3 bg-slate-50 border-r border-slate-200 text-slate-500 font-mono text-sm">{baseUrl}</div>
                     <input
                       className="flex-1 px-4 py-3 border-none focus:ring-0 text-[#0050cb] font-mono text-sm"
                       placeholder="{dynamic_id}"
                       type="text"
                       value={destinationPattern}
                       onChange={(e) => setDestinationPattern(e.target.value)}
+                      disabled
                     />
                   </div>
-                  <p className="text-xs text-slate-500 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-xs">info</span>
-                    Use <code className="bg-slate-100 px-1 rounded text-[#0050cb]">{'{dynamic_id}'}</code> to insert a unique identifier from your CSV data mapping.
-                  </p>
                 </div>
               </div>
             </div>
@@ -244,6 +298,7 @@ export default function BulkGeneratorPage() {
                   <span className="text-xs font-bold">Add Member</span>
                 </button>
               </div>
+              <p className="text-red-400">(This will not work for now. Just click Generate button)</p>
             </div>
             <div className="mt-6 flex justify-between">
               <button
@@ -270,7 +325,7 @@ export default function BulkGeneratorPage() {
           <a className="text-sm font-bold text-[#0050cb] hover:underline" href="#">View all history</a>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {bulkBatches.map((batch) => (
+          {/* {bulkBatches.slice(0, 6).map((batch) => (
             <div key={batch.id} className="bg-white p-4 border border-slate-100 rounded-lg flex items-center gap-4">
               <div className={`w-10 h-10 rounded flex items-center justify-center ${batch.status === 'completed' ? 'bg-teal-50' : 'bg-blue-50'
                 }`}>
@@ -284,7 +339,7 @@ export default function BulkGeneratorPage() {
                 <p className="text-[10px] text-slate-400">{batch.linkCount.toLocaleString()} links - {batch.createdAt}</p>
               </div>
             </div>
-          ))}
+          ))} */}
         </div>
       </div>
     </div>

@@ -11,6 +11,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  domain: string;
+  baseUrl: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,6 +21,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [domain] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.hostname || 'link.engine.io';
+    }
+    return 'link.engine.io';
+  });
+  const [protocol] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.protocol || 'https:';
+    }
+    return 'https:';
+  });
+  const path = "r";
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -48,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
       options: { data: metadata },
     });
-    
+
     return { error: error as Error | null };
   };
 
@@ -57,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, baseUrl: `${protocol}//${domain}/${path}/`, domain }}>
       {children}
     </AuthContext.Provider>
   );

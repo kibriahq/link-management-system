@@ -1,87 +1,258 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { LinkItem, LinkContextType, BulkBatch, ActivityItem, User } from './types';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from './supabase-client';
+import { LinkItem, InputLink, LinkContextType, BulkBatch, ActivityItem, User } from './types';
 
 const LinkContext = createContext<LinkContextType | undefined>(undefined);
 
-const initialUsers: User[] = [
-  { id: '1', name: 'Alex Rivers', role: 'Admin', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDsKRjL3zbQAV9bjbOsBxe3WNHN78GFT_onfY0lgqPxydDHwa-cXg4Vcz_u9dG7VmYLKREObPtPyssXxpBDh4EA-jHjfkry9MAf-8-UDmaAOhUk31KEk3VVDgrHJ5tVQHmFjs94_q7cur4CyEN8ozufB2hHJEY06-2_5CyD0wxa16ZOZys3lzNdGhd-heTn4pfkSpnL26OMPwZsBaVxMZceTygONcLljS-HD39EDZag_2XH7k_KDqWBFB-w6PNcpl2HwmGdy59yUVk' },
-  { id: '2', name: 'Sarah Chen', role: 'Manager', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCtZ2O_ICU5U2mSHP0jlta02h-RfYWP79wPj70QVMUusYsYD_wHY9ozRypUnYh_MvLnXLPR0Vip3kIGutwDnVum4XaJ6oN3sslN0-vfqqvDRqABFpFIkKa0ll_8eiLY7-rvMI5fvSJyedztcZuMvD716osFNEAAu62SdgR9-ryK_nvcNZ2d0UJnvxvs5amFSO-LwKwicPRGq_MqEaXDCF846VWbHf5yq0FRvVn9a5T7j2wI-F5kYhE1MiytWtXansjg04dAbLCB-Gg' },
-  { id: '3', name: 'Marcus Reed', role: 'User', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCDRAlqMJDiPpR6jqR2yTDqVR_NhrqdjS770hlPym7gdvt8IPTaFdaH5kh1h7u7X1m-gR2na3WmwZOdWDGwfJmLq7CQIN2S21ryXIQ6V7CxM-Cmr6F_TpgvW2qBOj-ikcEo4GtU8lI_vSX4AQFm6FVyQ1H6VZv9V4rC_qvjIpjONDE7VHQT2WtcuSmyLyfx1nOqosfpHqYE8DDp5g0tISWyfYvkQo8dS3-dMMfd3t8TbWxB-XvHhGpZAfXKkm-I8AyVbSH9sMXm7sY' },
-];
+const getTimeAgo = (dateStr: string) => {
+  if (!dateStr) return 'Unknown';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
 
-const initialLinks: LinkItem[] = [
-  { id: '1', shortCode: 'summer-promo', destinationUrl: 'https://marketing.acme.com/campaigns/2024/summer', scans: 14208, createdAt: new Date().toISOString(), lastActivity: '2 mins ago', userId: '1', userName: 'Alex Rivers', userAvatar: initialUsers[0].avatar, status: 'active' },
-  { id: '2', shortCode: 'v-launch', destinationUrl: 'https://product.acme.com/v-launch/documentation', scans: 8941, createdAt: new Date().toISOString(), lastActivity: '1 hour ago', userId: '2', userName: 'Sarah Chen', userAvatar: initialUsers[1].avatar, status: 'active' },
-  { id: '3', shortCode: 'old-link', destinationUrl: 'https://archive.acme.com/legacy/deals', scans: 2105, createdAt: new Date().toISOString(), lastActivity: '3 weeks ago', userId: '3', userName: 'John Doe', status: 'expired' },
-  { id: '4', shortCode: 'support-bot', destinationUrl: 'https://help.acme.com/chat/widget-v4-loader', scans: 42910, createdAt: new Date().toISOString(), lastActivity: 'Just now', userId: '3', userName: 'Marcus Reed', userAvatar: initialUsers[2].avatar, status: 'active' },
-];
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return `${diffDays}d ago`;
+};
 
-const initialActivity: ActivityItem[] = [
-  { id: '1', linkSlug: 'summer-promo', location: 'New York, USA', device: 'iPhone 15 - Safari', timeAgo: 'Just Now', type: 'scan' },
-  { id: '2', linkSlug: 'promo-discount-50', location: 'London, UK', device: 'Windows 11 - Chrome', timeAgo: '2m ago', type: 'click' },
-  { id: '3', linkSlug: 'customer-support-qr', location: 'Berlin, DE', device: 'Android 14 - Firefox', timeAgo: '14m ago', type: 'scan' },
-  { id: '4', linkSlug: 'summer-promo', location: 'Tokyo, JP', device: 'MacBook Pro - Safari', timeAgo: '22m ago', type: 'scan' },
-];
-
-const initialBatches: BulkBatch[] = [
-  { id: '1', name: 'Newsletter_Oct_Final', linkCount: 12500, createdAt: '2h ago', status: 'completed' },
-  { id: '2', name: 'SMS_Promo_V3', linkCount: 5000, createdAt: '5h ago', status: 'completed' },
-  { id: '3', name: 'Referral_Bounty_Batch', linkCount: 8000, createdAt: 'Ready for download', status: 'ready' },
-];
+function transformLink(record: unknown): LinkItem {
+  const link = record as Record<string, unknown>;
+  return {
+    id: link.id as number,
+    name: link.name as string | undefined,
+    slug: link.slug as string,
+    url: link.url as string | undefined,
+    userId: link.user_id as string | undefined,
+    createdAt: link.created_at as string,
+    status: (link.status as 'active' | 'inactive' | 'expired') || 'active',
+  };
+}
 
 export function LinkProvider({ children }: { children: ReactNode }) {
-  const [links, setLinks] = useState<LinkItem[]>(initialLinks);
-  const [bulkBatches, setBulkBatches] = useState<BulkBatch[]>(initialBatches);
-  const [activity, setActivity] = useState<ActivityItem[]>(initialActivity);
-  const [users] = useState<User[]>(initialUsers);
+  const [links, setLinks] = useState<LinkItem[]>([]);
+  const [bulkBatches, setBulkBatches] = useState<BulkBatch[]>([]);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const addLink = (link: LinkItem) => {
-    setLinks((prev) => [link, ...prev]);
+  const refetch = async () => {
+    try {
+      const [linksRes, batchesRes, activityRes, usersRes] = await Promise.all([
+        supabase.from('links').select('*').order('created_at', { ascending: false }),
+        supabase.from('bulk_batches').select('*').order('created_at', { ascending: false }),
+        supabase.from('activity').select('*').order('time', { ascending: false }),
+        supabase.from('users').select('*'),
+      ]);
+
+      if (linksRes.data) {
+        setLinks(linksRes.data.map(transformLink));
+      }
+
+      if (batchesRes.data) {
+        setBulkBatches(batchesRes.data.map(batch => ({
+          id: batch.id.toString(),
+          name: batch.name,
+          linkCount: batch.link_count,
+          createdAt: new Date(batch.created_at).toLocaleDateString(),
+          status: batch.status,
+        })));
+      }
+
+      if (activityRes.data) {
+        setActivity(activityRes.data.map(item => ({
+          id: item.id.toString(),
+          linkSlug: item.link_slug,
+          location: item.location,
+          device: item.device,
+          timeAgo: getTimeAgo(item.time),
+          type: item.type,
+        })));
+      }
+
+      if (usersRes.data) {
+        setUsers(usersRes.data.map(user => ({
+          id: user.id,
+          name: user.name,
+          avatar: user.avatar_url,
+          role: user.role,
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateLink = (id: string, updates: Partial<LinkItem>) => {
+  useEffect(() => {
+    let cancelled = false;
+    async function init() {
+      const [linksRes, activityRes, usersRes] = await Promise.all([
+        supabase.from('links').select('*').order('created_at', { ascending: false }),
+        supabase.from('logs').select('*').order('time', { ascending: false }),
+        supabase.from('users').select('*'),
+      ]);
+      if (cancelled) return;
+
+      if (linksRes.data) {
+        setLinks(linksRes.data.map(transformLink));
+      }
+      if (activityRes.data) {
+        setActivity(activityRes.data.map(item => ({
+          id: item.id.toString(),
+          linkSlug: item.link_slug,
+          location: item.location,
+          device: item.device,
+          timeAgo: getTimeAgo(item.time),
+          type: item.type,
+        })));
+      }
+      if (usersRes.data) {
+        setUsers(usersRes.data.map(user => ({
+          id: user.id,
+          name: user.name,
+          avatar: user.avatar_url,
+          role: user.role,
+        })));
+      }
+      setLoading(false);
+    }
+    init();
+    return () => { cancelled = true; };
+  }, []);
+
+  const getSlugs = async (): Promise<string[]> => {
+    const { data, error } = await supabase.from('links').select('slug');
+    if (error) {
+      console.error('Error fetching slugs:', error);
+      return [];
+    }
+
+    return data ? (data as { slug: string }[]).map(item => item.slug) : [];
+  };
+
+  const addLink = async (link: LinkItem) => {
+    const { data, error } = await supabase.from('links').insert({
+      name: link.name,
+      slug: link.slug,
+      url: link.url,
+      user_id: link.userId,
+      status: link.status || 'active',
+    }).select().single();
+
+    if (error) {
+      console.error('Error adding link:', error);
+      throw error;
+    }
+
+    if (data) {
+      const newLink = transformLink(data);
+      setLinks((prev) => [newLink, ...prev]);
+    }
+  };
+
+  const addBulkLinks = async (links: InputLink[]) => {
+    const { data, error } = await supabase.from('links').insert(
+      links.map(link => ({
+        name: link.name,
+        slug: link.slug,
+        url: link.url,
+        user_id: link.userId,
+      }))
+    ).select();
+
+    if (error) {
+      console.error('Error adding bulk links:', error);
+      throw error;
+    }
+
+    if (data) {
+      const newLinks = data.map(transformLink);
+      setLinks((prev) => [...newLinks, ...prev]);
+    }
+  };
+
+  const updateLink = async (id: number, updates: Partial<LinkItem>) => {
+    const updateData: Record<string, unknown> = {};
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.slug !== undefined) updateData.slug = updates.slug;
+    if (updates.url !== undefined) updateData.url = updates.url;
+    if (updates.status !== undefined) updateData.status = updates.status;
+    if (updates.userId !== undefined) updateData.user_id = updates.userId;
+
+    const { error } = await supabase
+      .from('links')
+      .update(updateData)
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating link:', error);
+      throw error;
+    }
+
     setLinks((prev) =>
       prev.map((link) => (link.id === id ? { ...link, ...updates } : link))
     );
   };
 
-  const deleteLink = (id: string) => {
+  const deleteLink = async (id: number) => {
+    const { error } = await supabase.from('links').delete().eq('id', id);
+
+    if (error) {
+      console.error('Error deleting link:', error);
+      throw error;
+    }
+
     setLinks((prev) => prev.filter((link) => link.id !== id));
   };
 
-  const incrementScan = (id: string) => {
-    setLinks((prev) =>
-      prev.map((link) =>
-        link.id === id
-          ? { ...link, scans: link.scans + 1, lastActivity: 'Just now' }
-          : link
-      )
-    );
-  };
+  const addActivity = async (item: ActivityItem) => {
+    const { data, error } = await supabase.from('activity').insert({
+      link_slug: item.linkSlug,
+      location: item.location,
+      device: item.device,
+      type: item.type,
+    }).select().single();
 
-  const addBulkBatch = (batch: BulkBatch) => {
-    setBulkBatches((prev) => [batch, ...prev]);
-  };
+    if (error) {
+      console.error('Error adding activity:', error);
+      throw error;
+    }
 
-  const addActivity = (item: ActivityItem) => {
-    setActivity((prev) => [item, ...prev]);
+    if (data) {
+      const newItem: ActivityItem = {
+        id: data.id.toString(),
+        linkSlug: data.link_slug,
+        location: data.location,
+        device: data.device,
+        timeAgo: 'Just now',
+        type: data.type,
+      };
+      setActivity((prev) => [newItem, ...prev]);
+    }
   };
 
   return (
     <LinkContext.Provider
       value={{
         links,
+        getSlugs,
         addLink,
+        addBulkLinks,
         updateLink,
         deleteLink,
-        incrementScan,
         bulkBatches,
-        addBulkBatch,
         activity,
         addActivity,
         users,
+        loading,
+        refetch,
       }}
     >
       {children}

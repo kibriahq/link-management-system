@@ -5,18 +5,18 @@ import { useLinks } from '@/lib/LinkContext';
 export default function AnalyticsPage() {
   const { links } = useLinks();
 
-  const totalScans = links.reduce((acc, link) => acc + link.scans, 0);
+  const totalLinks = links.length;
   const activeLinks = links.filter(l => l.status === 'active').length;
 
-  const topLinks = [...links].sort((a, b) => b.scans - a.scans).slice(0, 5);
+  const topLinks = [...links].slice(0, 5);
 
   const countries = [
-    { name: 'United States', percentage: 42, scans: 538964 },
-    { name: 'United Kingdom', percentage: 18, scans: 231210 },
-    { name: 'Germany', percentage: 14, scans: 179830 },
-    { name: 'France', percentage: 12, scans: 154140 },
-    { name: 'Canada', percentage: 8, scans: 102760 },
-    { name: 'Other', percentage: 6, scans: 77108 },
+    { name: 'United States', percentage: 42 },
+    { name: 'United Kingdom', percentage: 18 },
+    { name: 'Germany', percentage: 14 },
+    { name: 'France', percentage: 12 },
+    { name: 'Canada', percentage: 8 },
+    { name: 'Other', percentage: 6 },
   ];
 
   const devices = [
@@ -27,26 +27,25 @@ export default function AnalyticsPage() {
 
   const browsers = [
     { name: 'Chrome', percentage: 64 },
-    { name: 'Safari', percentage: 22 },
+    { name: 'Safari', percentage: 24 },
     { name: 'Firefox', percentage: 8 },
-    { name: 'Edge', percentage: 4 },
-    { name: 'Other', percentage: 2 },
+    { name: 'Other', percentage: 4 },
   ];
 
   return (
     <div className="space-y-6">
       <header className="mb-6">
-        <h1 className="font-headline-sm text-slate-900">Analytics</h1>
+        <h1 className="font-headline-sm text-slate-900 mb-1">Analytics</h1>
         <p className="text-slate-500 text-sm mt-1">Track performance metrics and user engagement across all your links.</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white border border-slate-200 p-4 rounded-xl">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Scans</span>
+            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Links</span>
             <span className="text-xs font-bold text-[#00655c] px-2 py-0.5 bg-[#00655c]/10 rounded-full">+12.4%</span>
           </div>
-          <div className="font-mono text-2xl font-semibold text-slate-900">{totalScans.toLocaleString()}</div>
+          <div className="font-mono text-2xl font-semibold text-slate-900">{totalLinks}</div>
         </div>
         <div className="bg-white border border-slate-200 p-4 rounded-xl">
           <div className="flex items-center justify-between mb-2">
@@ -77,13 +76,13 @@ export default function AnalyticsPage() {
                 <span className="text-sm font-bold text-slate-400 w-6">#{index + 1}</span>
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-semibold text-slate-900">/{link.shortCode}</span>
-                    <span className="text-sm font-mono text-slate-600">{link.scans.toLocaleString()}</span>
+                    <span className="text-sm font-semibold text-slate-900">/{link.slug}</span>
+                    <span className="text-sm font-mono text-slate-600">{link.url}</span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                     <div
                       className="bg-[#0066ff] h-full rounded-full"
-                      style={{ width: `${(link.scans / topLinks[0].scans) * 100}%` }}
+                      style={{ width: `${((topLinks.length - index) / topLinks.length) * 100}%` }}
                     ></div>
                   </div>
                 </div>
