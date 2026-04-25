@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse, NextFetchEvent } from 'next/server';
 
-// In-memory cache
-const cache = new Map<string, { id: string | number, realUrl: string; expires: number }>();
-const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
-
 export const config = {
   matcher: '/r/:slug*',
 };
@@ -14,7 +10,7 @@ export const proxy = async (request: NextRequest, event: NextFetchEvent) => {
   if (!slug) return NextResponse.next();
 
 
-  const { id, realUrl } = await getUrl(slug);
+  const { id, realUrl } = await fetchFromSupabase(slug);
 
   if (!realUrl) return NextResponse.rewrite(new URL('/not-found', request.url));
 
@@ -23,23 +19,6 @@ export const proxy = async (request: NextRequest, event: NextFetchEvent) => {
 
   return NextResponse.redirect(realUrl, 301);
 };
-
-async function getUrl(slug: string) {
-  // Cache check
-  const cached = cache.get(slug);
-  if (cached && cached.expires > Date.now()) {
-    return { id: cached.id, realUrl: cached.realUrl };
-  }
-
-  // Cache miss → Supabase query
-  const { id, realUrl } = await fetchFromSupabase(slug);
-
-  if (realUrl) {
-    cache.set(slug, { id, realUrl, expires: Date.now() + CACHE_TTL });
-  }
-
-  return { id, realUrl };
-}
 
 async function fetchFromSupabase(slug: string) {
 
@@ -50,6 +29,7 @@ async function fetchFromSupabase(slug: string) {
         apikey: process.env.NEXT_PUBLIC_SUPABASE_PUB_KEY!,
         // Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUB_KEY}`,
       },
+      cache: 'force-cache',
       // next: { revalidate: 86400 }, // dont need on proxy
     }
   );
