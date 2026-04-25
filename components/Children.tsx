@@ -19,7 +19,12 @@ function Children({ children }: { children: React.ReactNode }) {
     }
 
     
-    
+    if(pathname.startsWith('/r/')) {
+        console.log('Yes');
+        
+        return children;
+    }
+
     if (!session) {
         if (pathname === '/login' || pathname === '/signup') {
             return children

@@ -25,6 +25,9 @@ async function fetchFromSupabase(slug: string) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/links?slug=eq.${slug}&select=url,id`,
     {
+      next: {
+        revalidate: 3600, // 1 hour
+      },
       headers: {
         apikey: process.env.NEXT_PUBLIC_SUPABASE_PUB_KEY!,
         // Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUB_KEY}`,
