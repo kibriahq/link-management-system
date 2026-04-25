@@ -2,7 +2,7 @@ import { NextRequest, NextResponse, NextFetchEvent } from 'next/server';
 
 // In-memory cache
 const cache = new Map<string, { id: string | number, realUrl: string; expires: number }>();
-const CACHE_TTL = 1000 * 60 * 60 * 12; // 12 hours
+const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 
 export const config = {
   matcher: '/r/:slug*',
