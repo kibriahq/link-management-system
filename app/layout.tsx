@@ -7,6 +7,7 @@ import { AuthProvider } from "@/lib/AuthContext";
 import Sidebar from "@/components/Sidebar";
 import TopNav from "@/components/TopNav";
 import Children from "@/components/Children";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <SpeedInsights />
         <AuthProvider>
           <LinkProvider>
             <Children>{children}</Children>
