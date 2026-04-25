@@ -137,6 +137,16 @@ export function LinkProvider({ children }: { children: ReactNode }) {
     return data ? (data as { slug: string }[]).map(item => item.slug) : [];
   };
 
+  const getLinkBySlug = async (slug: string): Promise<LinkItem | null> => {
+    const { data, error } = await supabase.from('links').select('*').eq('slug', slug).single();
+    if (error) {
+      console.error('Error fetching link by slug:', error);
+      return null;
+    }
+
+    return data ? (data as LinkItem) : null;
+  };
+
   const addLink = async (link: LinkItem) => {
     const { data, error } = await supabase.from('links').insert({
       name: link.name,
@@ -243,6 +253,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
       value={{
         links,
         getSlugs,
+        getLinkBySlug,
         addLink,
         addBulkLinks,
         updateLink,

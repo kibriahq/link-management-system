@@ -42,6 +42,7 @@ export interface User {
 export interface LinkContextType {
   links: LinkItem[];
   getSlugs: () => Promise<string[]>;
+  getLinkBySlug: (slug: string) => Promise<LinkItem | null>
   addLink: (link: LinkItem) => Promise<void>;
   addBulkLinks: (links: InputLink[]) => Promise<void>;
   updateLink: (id: number, updates: Partial<LinkItem>) => Promise<void>;
