@@ -29,7 +29,6 @@ async function fetchFromSupabase(slug: string) {
         apikey: process.env.NEXT_PUBLIC_SUPABASE_PUB_KEY!,
         // Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUB_KEY}`,
       },
-      cache: 'force-cache',
       // next: { revalidate: 86400 }, // dont need on proxy
     }
   );
