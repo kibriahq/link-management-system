@@ -25,6 +25,7 @@ const clearCache = async (slug: string) => {
 
 export interface LinkContextType {
   links: LinkItem[];
+  topActiveLinks: (length?: number) => LinkItem[];
   getSlugs: () => Promise<string[]>;
   getLinkBySlug: (slug: string) => Promise<LinkItem | null>
   addLink: (link: LinkItem) => Promise<void>;
@@ -113,6 +114,11 @@ export function LinkProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, []);
 
+  const topActiveLinks = (length = 3) => {
+    const sorted = [...links].sort((a, b) => (b.logs?.length || 0) - (a.logs?.length || 0));
+    return sorted.slice(0, length);
+  }
+
   const getSlugs = async (): Promise<string[]> => {
     const { data, error } = await supabase.from('links').select('slug');
     if (error) {
@@ -192,7 +198,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
       console.error('Error updating link:', error);
       throw error;
     }
-    
+
 
 
     clearCache(slug || '');
@@ -242,6 +248,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
     <LinkContext.Provider
       value={{
         links,
+        topActiveLinks,
         getSlugs,
         getLinkBySlug,
         addLink,

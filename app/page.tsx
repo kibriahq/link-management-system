@@ -9,9 +9,10 @@ import agentToDevice from '@/utils/agentToDevice';
 
 export default function Dashboard() {
   const { baseUrl } = useInfo();
-  const { links, activity } = useLinks();
+  const { links, topActiveLinks, activity } = useLinks();
 
   const totalActiveLinks = links.length;
+  const topLinks = topActiveLinks(3);
   const activeUrls = links.filter((l) => l.status === 'active').length;
   const registeredUsers = 8520;
   const systemHealth = 99.9;
@@ -110,7 +111,7 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {links.slice(0, 3).map((link) => (
+                  {topLinks.map((link) => (
                     <tr key={link.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
