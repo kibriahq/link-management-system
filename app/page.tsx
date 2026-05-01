@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useInfo } from '@/lib/InfoContext';
 import { useLinks } from '@/lib/LinkContext';
 import copyToClipboard from '@/utils/copyToClipboard';
@@ -7,15 +8,85 @@ import Link from 'next/link';
 import getTimeAgo from '@/utils/getTimeAgo';
 import agentToDevice from '@/utils/agentToDevice';
 
+const buildSparklinePath = (values: number[]) => {
+  const width = 100;
+  const height = 40;
+  const padding = 4;
+  const max = Math.max(...values, 1);
+  const step = values.length > 1 ? width / (values.length - 1) : width;
+
+  const points = values.map((value, index) => {
+    const x = index * step;
+    const y = height - padding - (value / max) * (height - padding * 2);
+    return { x, y };
+  });
+
+  const line = points
+    .map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
+    .join(' ');
+
+  return {
+    line,
+    area: `${line} L${width} ${height} L0 ${height} Z`,
+  };
+};
+
+const getTrendLabel = (current: number, previous: number) => {
+  if (previous === 0 && current === 0) return 'No activity';
+  if (previous === 0) return '+100%';
+
+  const change = Math.round(((current - previous) / previous) * 100);
+  return `${change >= 0 ? '+' : ''}${change}%`;
+};
+
 export default function Dashboard() {
   const { baseUrl } = useInfo();
   const { links, topActiveLinks, activity } = useLinks();
 
-  const totalActiveLinks = links.length;
   const topLinks = topActiveLinks(3);
   const activeUrls = links.filter((l) => l.status === 'active').length;
   const registeredUsers = 8520;
   const systemHealth = 99.9;
+  const clicksTrend = useMemo(() => {
+    const validTimes = activity
+      .map((item) => new Date(item.createdAt).getTime())
+      .filter((time) => !Number.isNaN(time));
+    const referenceDate = new Date(Math.max(...validTimes, 0));
+    const dayStart = new Date(referenceDate);
+    dayStart.setHours(0, 0, 0, 0);
+
+    const currentDays = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(dayStart);
+      date.setDate(dayStart.getDate() - (6 - index));
+      return date.toISOString().slice(0, 10);
+    });
+
+    const previousDays = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(dayStart);
+      date.setDate(dayStart.getDate() - (13 - index));
+      return date.toISOString().slice(0, 10);
+    });
+
+    const counts = activity.reduce<Record<string, number>>((acc, item) => {
+      const date = new Date(item.createdAt);
+      if (Number.isNaN(date.getTime())) return acc;
+
+      const key = date.toISOString().slice(0, 10);
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    const currentValues = currentDays.map((day) => counts[day] || 0);
+    const previousTotal = previousDays.reduce((sum, day) => sum + (counts[day] || 0), 0);
+    const currentTotal = currentValues.reduce((sum, value) => sum + value, 0);
+    const paths = buildSparklinePath(currentValues);
+
+    return {
+      ...paths,
+      label: getTrendLabel(currentTotal, previousTotal),
+      isPositive: currentTotal >= previousTotal,
+    };
+  }, [activity]);
 
   return (
     <div className="space-y-6">
@@ -29,7 +100,9 @@ export default function Dashboard() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-slate-500">Total Clicks</span>
-              <span className="text-xs font-bold text-[#00655c] px-2 py-0.5 bg-[#00655c]/10 rounded-full">+12.4%</span>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${clicksTrend.isPositive ? 'text-[#00655c] bg-[#00655c]/10' : 'text-red-500 bg-red-50'}`}>
+                {clicksTrend.label}
+              </span>
             </div>
             <div className="font-mono text-2xl font-semibold tracking-tight text-slate-900">
               {activity.length}
@@ -37,8 +110,8 @@ export default function Dashboard() {
           </div>
           <div className="mt-4 h-12 w-full relative">
             <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
-              <path className="text-[#00655c]" d="M0 35 Q10 25 20 30 T40 15 T60 25 T80 5 T100 20" fill="none" stroke="currentColor" strokeWidth="2" />
-              <path className="text-[#00655c]/5" d="M0 35 Q10 25 20 30 T40 15 T60 25 T80 5 T100 20 V40 H0 Z" fill="currentColor" />
+              <path className={clicksTrend.isPositive ? 'text-[#00655c]/5' : 'text-red-500/5'} d={clicksTrend.area} fill="currentColor" />
+              <path className={clicksTrend.isPositive ? 'text-[#00655c]' : 'text-red-500'} d={clicksTrend.line} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
             </svg>
           </div>
         </div>
