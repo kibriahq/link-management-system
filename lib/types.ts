@@ -5,7 +5,8 @@ export interface LinkItem {
   url?: string;
   userId?: string;
   createdAt: string;
-  status?: 'active' | 'inactive' | 'expired';
+  status?: 'active' | 'inactive' | 'broken';
+  logs?: []
 }
 
 export type InputLink = {
@@ -15,21 +16,13 @@ export type InputLink = {
   userId: string | null;
 }
 
-export interface BulkBatch {
-  id: string;
-  name: string;
-  linkCount: number;
-  createdAt: string;
-  status: 'completed' | 'ready' | 'processing';
-}
 
 export interface ActivityItem {
   id: string;
-  linkSlug: string;
+  links: object;
   location: string;
   device: string;
-  timeAgo: string;
-  type: 'scan' | 'click' | 'edit';
+  createdAt: string
 }
 
 export interface User {
@@ -47,7 +40,6 @@ export interface LinkContextType {
   addBulkLinks: (links: InputLink[]) => Promise<void>;
   updateLink: (id: number, updates: Partial<LinkItem>) => Promise<void>;
   deleteLink: (id: number) => Promise<void>;
-  bulkBatches: BulkBatch[];
   activity: ActivityItem[];
   addActivity: (activity: ActivityItem) => Promise<void>;
   users: User[];

@@ -8,6 +8,7 @@ import Sidebar from "@/components/Sidebar";
 import TopNav from "@/components/TopNav";
 import Children from "@/components/Children";
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import InfoProvider from "@/lib/InfoContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,11 +32,13 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <SpeedInsights />
-        <AuthProvider>
-          <LinkProvider>
-            <Children>{children}</Children>
-          </LinkProvider>
-        </AuthProvider>
+        <InfoProvider>
+          <AuthProvider>
+            <LinkProvider>
+              <Children>{children}</Children>
+            </LinkProvider>
+          </AuthProvider>
+        </InfoProvider>
       </body>
     </html>
   );

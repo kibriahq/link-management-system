@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useLinks } from '@/lib/LinkContext';
 import { BulkBatch, LinkItem, InputLink } from '@/lib/types';
-import { useAuth } from '@/lib/AuthContext';
+import { useInfo } from '@/lib/InfoContext';
 
 function generateShortCode(length: number = 8): string {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -34,7 +34,7 @@ export default function BulkGeneratorPage() {
   const [destinationPattern, setDestinationPattern] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
-  const { domain, baseUrl } = useAuth();
+  const { domain, baseUrl } = useInfo();
 
 
   const handleGenerate = useCallback(async () => {
@@ -221,7 +221,7 @@ export default function BulkGeneratorPage() {
                     type="url"
                     value={destinationUrl}
                     onChange={(e) => setDestinationUrl(e.target.value)}
-                    placeholder='e.g. https://yoursite.com/product/{dynamic_id}'
+                    placeholder='e.g. https://yoursite.com/product/{product_slug}'
                   />
                 </div>
               </div>

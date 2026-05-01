@@ -2,14 +2,17 @@
 
 import { useState } from 'react';
 import { useLinks } from '@/lib/LinkContext';
-import { useAuth } from '@/lib/AuthContext';
+import { useInfo } from '@/lib/InfoContext';
+import copyToClipboard from '@/utils/copyToClipboard';
 
 export default function ManagePage() {
-  const { links, updateLink, deleteLink } = useLinks();
-  const [filter, setFilter] = useState<'active' | 'inactive'>('active');
+  const { links, updateLink, deleteLink, activity } = useLinks();
+  const [filter, setFilter] = useState<'active' | 'broken'>('active');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
-  const { baseUrl } = useAuth();
+  const { baseUrl } = useInfo();
+
+  const ctr = links.length > 0 ? ((links.reduce((sum, link) => sum + (link.logs?.length || 0), 0) / links.length) * 100).toFixed(2) : '0.00';
 
   const filteredLinks = links.filter((link) =>
     filter === 'active' ? link.status === 'active' : link.status !== 'active'
@@ -31,12 +34,6 @@ export default function ManagePage() {
     }
   };
 
-  const copyToClipboard = (slug: string) => {
-    navigator.clipboard.writeText(`${baseUrl}${slug}`).then(() => {
-      alert('Copied to clipboard');
-    });
-  };
-
   return (
     <div className="space-y-6">
       <header className="mb-6">
@@ -46,38 +43,15 @@ export default function ManagePage() {
             <p className="text-slate-500 text-sm mt-1">Manage, track, and optimize your enterprise short links.</p>
           </div>
           <div className="flex gap-3">
-            <div className="flex bg-slate-100 p-1 rounded-xl">
-              <button
-                onClick={() => setFilter('active')}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${filter === 'active' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'
-                  }`}
-              >
-                Active
-              </button>
-              <button
-                onClick={() => setFilter('inactive')}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${filter === 'inactive' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'
-                  }`}
-              >
-                Inactive
-              </button>
-            </div>
+            <button className="bg-white border border-slate-200 py-1.5 px-4 rounded-xl text-sm font-semibold text-slate-900 flex items-center gap-2 hover:bg-slate-50">
+              <span className="material-symbols-outlined text-sm">download</span>
+              Export CSV
+            </button>
           </div>
         </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white border border-slate-200 p-4 rounded-xl">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Links</span>
-            <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">link</span>
-          </div>
-          <div className="font-mono text-2xl font-semibold text-slate-900">{links.length.toLocaleString()}</div>
-          <div className="mt-2 flex items-center gap-1 text-xs font-bold text-[#00655c]">
-            <span className="material-symbols-outlined text-sm">trending_up</span>
-            +12% vs last month
-          </div>
-        </div>
 
         <div className="bg-white border border-slate-200 p-4 rounded-xl">
           <div className="flex items-center justify-between mb-4">
@@ -93,13 +67,25 @@ export default function ManagePage() {
 
         <div className="bg-white border border-slate-200 p-4 rounded-xl">
           <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Clicks</span>
+            <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">link</span>
+          </div>
+          <div className="font-mono text-2xl font-semibold text-slate-900">{activity.length.toLocaleString()}</div>
+          <div className="mt-2 flex items-center gap-1 text-xs font-bold text-[#00655c]">
+            <span className="material-symbols-outlined text-sm">trending_up</span>
+            +12% vs last month
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200 p-4 rounded-xl">
+          <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Avg. CTR</span>
             <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">ads_click</span>
           </div>
-          <div className="font-mono text-2xl font-semibold text-slate-900">4.2%</div>
+          <div className="font-mono text-2xl font-semibold text-slate-900">{ctr}%</div>
           <div className="mt-2 flex items-center gap-1 text-xs font-bold text-slate-400">
             <span className="material-symbols-outlined text-sm">horizontal_rule</span>
-            Steady performance
+            {links.reduce((sum, link) => sum + (link.logs?.length || 0), 0)} total clicks
           </div>
         </div>
 
@@ -108,7 +94,7 @@ export default function ManagePage() {
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Broken Links</span>
             <span className="material-symbols-outlined text-red-500 bg-red-50 p-1 rounded">warning</span>
           </div>
-          <div className="font-mono text-2xl font-semibold text-slate-900">24</div>
+          <div className="font-mono text-2xl font-semibold text-slate-900">{links.filter(link => link.status === 'broken').length}</div>
           <div className="mt-2 flex items-center gap-1 text-xs font-bold text-red-500">
             <span className="material-symbols-outlined text-sm">priority_high</span>
             Immediate action required
@@ -136,10 +122,22 @@ export default function ManagePage() {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-500">Showing 1-{filteredLinks.length} of {links.length} links</span>
-          <button className="bg-white border border-slate-200 py-1.5 px-4 rounded-xl text-sm font-semibold text-slate-900 flex items-center gap-2 hover:bg-slate-50">
-            <span className="material-symbols-outlined text-sm">download</span>
-            Export CSV
-          </button>
+          <div className="flex bg-slate-100 p-1 rounded-xl">
+            <button
+              onClick={() => setFilter('active')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${filter === 'active' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'
+                }`}
+            >
+              Active
+            </button>
+            <button
+              onClick={() => setFilter('broken')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${filter === 'broken' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'
+                }`}
+            >
+              Broken
+            </button>
+          </div>
         </div>
       </div>
 
@@ -152,17 +150,17 @@ export default function ManagePage() {
                 <p className="py-3 px-4 text-sm font-semibold text-slate-600">Id</p>
               </th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600">Short URL</th>
-              <th className="py-3 px-4 text-sm font-semibold text-slate-600">Current Destination</th>
+              <th className="py-3 px-4 text-sm font-semibold text-slate-600">Destination</th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600">Name</th>
-              <th className="py-3 px-4 text-sm font-semibold text-slate-600">Assigned User</th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600">Total Scans</th>
+              <th className="py-3 px-4 text-sm font-semibold text-slate-600">Status</th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600">Date</th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filteredLinks.map((link) => (
-              <tr key={link.id} className={`hover:bg-slate-50 transition-colors ${link.status === 'inactive' || link.status === 'expired' ? 'opacity-70 grayscale-[0.3]' : ''}`}>
+              <tr key={link.id} className={`hover:bg-slate-50 transition-colors ${link.status === 'inactive' || link.status === 'broken' ? 'opacity-70 grayscale-[0.3]' : ''}`}>
 
                 <td className="py-3 px-4">
                   <p className="py-3 px-4 text-sm font-semibold text-slate-600">{link.id}</p>
@@ -170,7 +168,7 @@ export default function ManagePage() {
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2 group">
                     <span className="font-mono text-[#0050cb] font-semibold cursor-pointer">/{link.slug}</span>
-                    <button onClick={() => copyToClipboard(link.slug)} className="material-symbols-outlined text-sm text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">content_copy</button>
+                    <button onClick={() => copyToClipboard(link.slug, baseUrl)} className="material-symbols-outlined text-sm text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">content_copy</button>
                   </div>
                 </td>
                 <td className="py-3 px-4">
@@ -210,12 +208,13 @@ export default function ManagePage() {
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-700 text-center">{link.userId || '-'}</span>
+                    <span className="text-sm text-slate-700 text-center mx-auto">{link.logs?.length}</span>
                   </div>
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-700 text-center">{'-'}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tight ${link.status === 'active' ? 'bg-[#00655c]/10 text-[#00655c]' : link.status === 'broken' ? 'bg-red-100 text-red-500' : 'bg-slate-100 text-slate-500'
+                      }`}>{link.status}</span>
                   </div>
                 </td>
                 <td className="py-3 px-4">

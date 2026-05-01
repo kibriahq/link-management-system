@@ -6,21 +6,6 @@ import { LinkItem, InputLink, LinkContextType, BulkBatch, ActivityItem, User } f
 
 const LinkContext = createContext<LinkContextType | undefined>(undefined);
 
-const getTimeAgo = (dateStr: string) => {
-  if (!dateStr) return 'Unknown';
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return `${diffDays}d ago`;
-};
-
 function transformLink(record: unknown): LinkItem {
   const link = record as Record<string, unknown>;
   return {
@@ -30,23 +15,22 @@ function transformLink(record: unknown): LinkItem {
     url: link.url as string | undefined,
     userId: link.user_id as string | undefined,
     createdAt: link.created_at as string,
-    status: (link.status as 'active' | 'inactive' | 'expired') || 'active',
+    logs: (link.logs as []) || [],
+    status: (link.status as 'active' | 'inactive' | 'broken') || 'active',
   };
 }
 
 export function LinkProvider({ children }: { children: ReactNode }) {
   const [links, setLinks] = useState<LinkItem[]>([]);
-  const [bulkBatches, setBulkBatches] = useState<BulkBatch[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const refetch = async () => {
     try {
-      const [linksRes, batchesRes, activityRes, usersRes] = await Promise.all([
-        supabase.from('links').select('*').order('created_at', { ascending: false }),
-        supabase.from('bulk_batches').select('*').order('created_at', { ascending: false }),
-        supabase.from('activity').select('*').order('time', { ascending: false }),
+      const [linksRes, activityRes, usersRes] = await Promise.all([
+        supabase.from('links').select(`*, logs!logs_link_id_fkey (*)`).order('id', { ascending: false }),
+        supabase.from('logs').select(`*, links!logs_link_id_fkey (*)`).order('created_at', { ascending: false }),
         supabase.from('users').select('*'),
       ]);
 
@@ -54,27 +38,17 @@ export function LinkProvider({ children }: { children: ReactNode }) {
         setLinks(linksRes.data.map(transformLink));
       }
 
-      if (batchesRes.data) {
-        setBulkBatches(batchesRes.data.map(batch => ({
-          id: batch.id.toString(),
-          name: batch.name,
-          linkCount: batch.link_count,
-          createdAt: new Date(batch.created_at).toLocaleDateString(),
-          status: batch.status,
-        })));
-      }
+      console.log(activityRes.data);
 
       if (activityRes.data) {
         setActivity(activityRes.data.map(item => ({
           id: item.id.toString(),
-          linkSlug: item.link_slug,
+          links: item.links,
           location: item.location,
-          device: item.device,
-          timeAgo: getTimeAgo(item.time),
-          type: item.type,
+          device: item.user_agent,
+          createdAt: item.created_at,
         })));
       }
-
       if (usersRes.data) {
         setUsers(usersRes.data.map(user => ({
           id: user.id,
@@ -83,6 +57,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
           role: user.role,
         })));
       }
+      setLoading(false);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -92,37 +67,12 @@ export function LinkProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    async function init() {
-      const [linksRes, activityRes, usersRes] = await Promise.all([
-        supabase.from('links').select('*').order('created_at', { ascending: false }),
-        supabase.from('logs').select('*').order('time', { ascending: false }),
-        supabase.from('users').select('*'),
-      ]);
-      if (cancelled) return;
-
-      if (linksRes.data) {
-        setLinks(linksRes.data.map(transformLink));
+    const init = async () => {
+      await refetch();
+      if (!cancelled) {
+        setLoading(false);
       }
-      if (activityRes.data) {
-        setActivity(activityRes.data.map(item => ({
-          id: item.id.toString(),
-          linkSlug: item.link_slug,
-          location: item.location,
-          device: item.device,
-          timeAgo: getTimeAgo(item.time),
-          type: item.type,
-        })));
-      }
-      if (usersRes.data) {
-        setUsers(usersRes.data.map(user => ({
-          id: user.id,
-          name: user.name,
-          avatar: user.avatar_url,
-          role: user.role,
-        })));
-      }
-      setLoading(false);
-    }
+    };
     init();
     return () => { cancelled = true; };
   }, []);
@@ -227,7 +177,6 @@ export function LinkProvider({ children }: { children: ReactNode }) {
       link_slug: item.linkSlug,
       location: item.location,
       device: item.device,
-      type: item.type,
     }).select().single();
 
     if (error) {
@@ -238,11 +187,10 @@ export function LinkProvider({ children }: { children: ReactNode }) {
     if (data) {
       const newItem: ActivityItem = {
         id: data.id.toString(),
-        linkSlug: data.link_slug,
+        links: data.links,
         location: data.location,
         device: data.device,
-        timeAgo: 'Just now',
-        type: data.type,
+        createdAt: data.created_at,
       };
       setActivity((prev) => [newItem, ...prev]);
     }
@@ -258,7 +206,6 @@ export function LinkProvider({ children }: { children: ReactNode }) {
         addBulkLinks,
         updateLink,
         deleteLink,
-        bulkBatches,
         activity,
         addActivity,
         users,
