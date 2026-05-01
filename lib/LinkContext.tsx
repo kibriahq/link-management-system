@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from './supabase-client';
 import { LinkItem, InputLink, LinkContextType, ActivityItem, User } from './types';
+import { redirect } from 'next/navigation';
 
 const LinkContext = createContext<LinkContextType | undefined>(undefined);
 
@@ -131,11 +132,12 @@ export function LinkProvider({ children }: { children: ReactNode }) {
       console.error('Error adding bulk links:', error);
       throw error;
     }
-
     if (data) {
       const newLinks = data.map(transformLink);
       setLinks((prev) => [...newLinks, ...prev]);
     }
+
+    redirect('/manage');
   };
 
   const updateLink = async (id: number, updates: Partial<LinkItem>) => {

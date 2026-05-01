@@ -38,7 +38,6 @@ export default function BulkGeneratorPage() {
 
 
   const handleGenerate = useCallback(async () => {
-    console.time('test')
     if (urlCount < 1 || urlCount > 50000) {
       alert('Please enter a valid number between 1 and 50,000');
       return;
@@ -75,9 +74,6 @@ export default function BulkGeneratorPage() {
     }
 
     addBulkLinks(generatedLinks);
-
-
-    console.timeEnd('test');
 
     // generatedLinks.forEach(link => addLink(link));
 
