@@ -1,9 +1,64 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLinks } from '@/lib/LinkContext';
 import { useInfo } from '@/lib/InfoContext';
 import copyToClipboard from '@/utils/copyToClipboard';
+
+const getGrowthStats = (dates: string[], windowDays = 30) => {
+  const windowMs = windowDays * 24 * 60 * 60 * 1000;
+  const times = dates
+    .map((date) => new Date(date).getTime())
+    .filter((time) => !Number.isNaN(time));
+  const referenceTime = Math.max(...times, 0);
+
+  if (!referenceTime) {
+    return {
+      current: 0,
+      previous: 0,
+      label: 'No growth data',
+      isPositive: true,
+    };
+  }
+
+  const current = times.filter((time) => referenceTime - time <= windowMs).length;
+  const previous = times.filter((time) => {
+    const age = referenceTime - time;
+    return age > windowMs && age <= windowMs * 2;
+  }).length;
+
+  if (previous === 0 && current === 0) {
+    return {
+      current,
+      previous,
+      label: 'No growth data',
+      isPositive: true,
+    };
+  }
+
+  if (previous === 0) {
+    return {
+      current,
+      previous,
+      label: '+100% vs last 30d',
+      isPositive: true,
+    };
+  }
+
+  const change = Math.round(((current - previous) / previous) * 100);
+
+  return {
+    current,
+    previous,
+    label: `${change >= 0 ? '+' : ''}${change}% vs last 30d`,
+    isPositive: change >= 0,
+  };
+};
+
+const toCsvCell = (value: unknown) => {
+  const text = String(value ?? '');
+  return `"${text.replaceAll('"', '""')}"`;
+};
 
 export default function ManagePage() {
   const { links, updateLink, deleteLink, activity } = useLinks();
@@ -13,6 +68,8 @@ export default function ManagePage() {
   const { baseUrl } = useInfo();
 
   const ctr = links.length > 0 ? ((links.reduce((sum, link) => sum + (link.logs?.length || 0), 0) / links.length) * 100).toFixed(2) : '0.00';
+  const linkGrowth = useMemo(() => getGrowthStats(links.map((link) => link.createdAt)), [links]);
+  const clickGrowth = useMemo(() => getGrowthStats(activity.map((item) => item.createdAt)), [activity]);
 
   const filteredLinks = links.filter((link) =>
     filter === 'active' ? link.status === 'active' : link.status !== 'active'
@@ -34,6 +91,32 @@ export default function ManagePage() {
     }
   };
 
+  const handleExportCsv = () => {
+    const headers = ['id', 'name', 'slug', 'short_url', 'destination', 'status', 'total_scans', 'created_at', 'user_id'];
+    const rows = links.map((link) => [
+      link.id,
+      link.name || '',
+      link.slug,
+      `${baseUrl.replace(/\/$/, '')}/${link.slug}`,
+      link.url || '',
+      link.status || 'active',
+      link.logs?.length || 0,
+      link.createdAt,
+      link.userId || '',
+    ]);
+    const csv = [headers, ...rows].map((row) => row.map(toCsvCell).join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+
+    anchor.href = url;
+    anchor.download = `links-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <header className="mb-6">
@@ -43,7 +126,7 @@ export default function ManagePage() {
             <p className="text-slate-500 text-sm mt-1">Manage, track, and optimize your enterprise short links.</p>
           </div>
           <div className="flex gap-3">
-            <button className="bg-white border border-slate-200 py-1.5 px-4 rounded-xl text-sm font-semibold text-slate-900 flex items-center gap-2 hover:bg-slate-50">
+            <button onClick={handleExportCsv} className="bg-white border border-slate-200 py-1.5 px-4 rounded-xl text-sm font-semibold text-slate-900 flex items-center gap-2 hover:bg-slate-50">
               <span className="material-symbols-outlined text-sm">download</span>
               Export CSV
             </button>
@@ -59,9 +142,9 @@ export default function ManagePage() {
             <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">link</span>
           </div>
           <div className="font-mono text-2xl font-semibold text-slate-900">{links.length.toLocaleString()}</div>
-          <div className="mt-2 flex items-center gap-1 text-xs font-bold text-[#00655c]">
-            <span className="material-symbols-outlined text-sm">trending_up</span>
-            {links.filter(l => l.status === 'active').length} active
+          <div className={`mt-2 flex items-center gap-1 text-xs font-bold ${linkGrowth.isPositive ? 'text-[#00655c]' : 'text-red-500'}`}>
+            <span className="material-symbols-outlined text-sm">{linkGrowth.isPositive ? 'trending_up' : 'trending_down'}</span>
+            {linkGrowth.label}
           </div>
         </div>
 
@@ -71,9 +154,9 @@ export default function ManagePage() {
             <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">link</span>
           </div>
           <div className="font-mono text-2xl font-semibold text-slate-900">{activity.length.toLocaleString()}</div>
-          <div className="mt-2 flex items-center gap-1 text-xs font-bold text-[#00655c]">
-            <span className="material-symbols-outlined text-sm">trending_up</span>
-            +12% vs last month
+          <div className={`mt-2 flex items-center gap-1 text-xs font-bold ${clickGrowth.isPositive ? 'text-[#00655c]' : 'text-red-500'}`}>
+            <span className="material-symbols-outlined text-sm">{clickGrowth.isPositive ? 'trending_up' : 'trending_down'}</span>
+            {clickGrowth.label}
           </div>
         </div>
 
