@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from './supabase-client';
-import { LinkItem, InputLink, LinkContextType, BulkBatch, ActivityItem, User } from './types';
+import { LinkItem, InputLink, LinkContextType, ActivityItem, User } from './types';
 
 const LinkContext = createContext<LinkContextType | undefined>(undefined);
 

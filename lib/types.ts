@@ -19,10 +19,11 @@ export type InputLink = {
 
 export interface ActivityItem {
   id: string;
-  links: object;
+  links: LinkItem;
   location: string;
   device: string;
   createdAt: string
+  linkSlug?: string
 }
 
 export interface User {
