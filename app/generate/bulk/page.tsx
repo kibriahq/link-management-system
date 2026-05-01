@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useLinks } from '@/lib/LinkContext';
-import { BulkBatch, LinkItem, InputLink } from '@/lib/types';
+import { LinkItem, InputLink } from '@/lib/types';
 import { useInfo } from '@/lib/InfoContext';
 
 function generateShortCode(length: number = 8): string {
