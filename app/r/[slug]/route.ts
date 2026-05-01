@@ -46,7 +46,7 @@ export async function GET(
       },
       // Next.js fetch cache - this is the correct caching layer for edge
       next: {
-        revalidate: 3600,
+        revalidate: 3600, // refresh cache every hour
         tags: [`link-${slug}`], // allows on-demand revalidation via revalidateTag()
       },
     }

@@ -2,8 +2,41 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from './supabase-client';
-import { LinkItem, InputLink, LinkContextType, ActivityItem, User } from './types';
+import { LinkItem, InputLink, ActivityItem, User } from './types';
 import { redirect } from 'next/navigation';
+import { useAuth } from './AuthContext';
+// import { revalidateTag } from "next/cache";
+
+// export async function clearCache(slug: string) {
+//   revalidateTag(`link-${slug}`, {
+//     expire: 0, // immediately expire the cache
+//   });
+// }
+
+const clearCache = async (slug: string) => {
+  await fetch("/api/revalidate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ slug }),
+  });
+};
+
+export interface LinkContextType {
+  links: LinkItem[];
+  getSlugs: () => Promise<string[]>;
+  getLinkBySlug: (slug: string) => Promise<LinkItem | null>
+  addLink: (link: LinkItem) => Promise<void>;
+  addBulkLinks: (links: InputLink[]) => Promise<void>;
+  updateLink: (id: number, updates: Partial<LinkItem>) => Promise<void>;
+  deleteLink: (id: number) => Promise<void>;
+  activity: ActivityItem[];
+  addActivity: (activity: ActivityItem) => Promise<void>;
+  users: User[];
+  loading: boolean;
+  refetch: () => Promise<void>;
+}
 
 const LinkContext = createContext<LinkContextType | undefined>(undefined);
 
@@ -26,6 +59,8 @@ export function LinkProvider({ children }: { children: ReactNode }) {
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const { user } = useAuth();
 
   const refetch = async () => {
     try {
@@ -103,7 +138,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
       name: link.name,
       slug: link.slug,
       url: link.url,
-      user_id: link.userId,
+      user_id: user?.id || null,
       status: link.status || 'active',
     }).select().single();
 
@@ -124,7 +159,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
         name: link.name,
         slug: link.slug,
         url: link.url,
-        user_id: link.userId,
+        user_id: user?.id || null,
       }))
     ).select();
 
@@ -157,6 +192,9 @@ export function LinkProvider({ children }: { children: ReactNode }) {
       console.error('Error updating link:', error);
       throw error;
     }
+
+    clearCache(updates.slug || '');
+    // clearCache(updates.slug || '');
 
     setLinks((prev) =>
       prev.map((link) => (link.id === id ? { ...link, ...updates } : link))

@@ -111,14 +111,14 @@ export default function ManagePage() {
             </button>
           </div>
           <div className="h-6 w-[1px] bg-slate-200"></div>
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <span className="text-sm text-slate-500">Filter by domain:</span>
             <select className="bg-transparent border-none focus:ring-0 text-sm font-semibold text-slate-900 cursor-pointer">
               <option>All Domains</option>
               <option>lnke.ng</option>
               <option>go.corp.io</option>
             </select>
-          </div>
+          </div> */}
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-500">Showing 1-{filteredLinks.length} of {links.length} links</span>
@@ -262,7 +262,7 @@ export default function ManagePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <div className="bg-[#0066ff]/5 border border-[#0066ff]/20 p-6 rounded-2xl flex items-center gap-6">
             <div className="w-12 h-12 bg-[#0066ff] rounded-xl flex items-center justify-center text-white">
@@ -299,7 +299,7 @@ export default function ManagePage() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
