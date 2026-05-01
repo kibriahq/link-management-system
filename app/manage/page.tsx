@@ -23,8 +23,8 @@ export default function ManagePage() {
     setEditValue(link.url || '');
   };
 
-  const handleSave = (id: number) => {
-    updateLink(id, { url: editValue });
+  const handleSave = (slug: string) => {
+    updateLink(slug, { url: editValue });
     setEditingId(null);
   };
 
@@ -179,9 +179,9 @@ export default function ManagePage() {
                           className="bg-white border border-slate-200 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none"
                           value={editValue}
                           onChange={(e) => setEditValue(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleSave(link.id)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSave(link.slug)}
                         />
-                        <button onClick={() => handleSave(link.id)} className="text-[#0050cb] text-sm font-semibold">Save</button>
+                        <button onClick={() => handleSave(link.slug)} className="text-[#0050cb] text-sm font-semibold">Save</button>
                       </div>
                     ) : (
                       <>

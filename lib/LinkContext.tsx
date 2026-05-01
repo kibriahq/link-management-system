@@ -29,7 +29,7 @@ export interface LinkContextType {
   getLinkBySlug: (slug: string) => Promise<LinkItem | null>
   addLink: (link: LinkItem) => Promise<void>;
   addBulkLinks: (links: InputLink[]) => Promise<void>;
-  updateLink: (id: number, updates: Partial<LinkItem>) => Promise<void>;
+  updateLink: (slug: string, updates: Partial<LinkItem>) => Promise<void>;
   deleteLink: (id: number) => Promise<void>;
   activity: ActivityItem[];
   addActivity: (activity: ActivityItem) => Promise<void>;
@@ -175,7 +175,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
     redirect('/manage');
   };
 
-  const updateLink = async (id: number, updates: Partial<LinkItem>) => {
+  const updateLink = async (slug: string, updates: Partial<LinkItem>) => {
     const updateData: Record<string, unknown> = {};
     if (updates.name !== undefined) updateData.name = updates.name;
     if (updates.slug !== undefined) updateData.slug = updates.slug;
@@ -186,18 +186,20 @@ export function LinkProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase
       .from('links')
       .update(updateData)
-      .eq('id', id);
+      .eq('slug', slug);
 
     if (error) {
       console.error('Error updating link:', error);
       throw error;
     }
+    
 
-    clearCache(updates.slug || '');
+
+    clearCache(slug || '');
     // clearCache(updates.slug || '');
 
     setLinks((prev) =>
-      prev.map((link) => (link.id === id ? { ...link, ...updates } : link))
+      prev.map((link) => (link.slug === slug ? { ...link, ...updates } : link))
     );
   };
 
