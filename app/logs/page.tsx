@@ -6,6 +6,22 @@ import { useLinks } from '@/lib/LinkContext';
 import agentToDevice from '@/utils/agentToDevice';
 import copyToClipboard from '@/utils/copyToClipboard';
 import getTimeAgo from '@/utils/getTimeAgo';
+import {
+  Bot,
+  Clock3,
+  Copy,
+  ExternalLink,
+  Link2,
+  MapPin,
+  Monitor,
+  MonitorSmartphone,
+  MousePointerClick,
+  Radar,
+  Search,
+  Smartphone,
+  Tablet,
+  type LucideIcon,
+} from 'lucide-react';
 
 type DeviceFilter = 'all' | 'mobile' | 'desktop' | 'tablet' | 'bot';
 
@@ -20,6 +36,13 @@ const formatDateTime = (value: string) => {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date);
+};
+
+const deviceIcons: Record<Exclude<DeviceFilter, 'all'>, LucideIcon> = {
+  mobile: Smartphone,
+  desktop: Monitor,
+  tablet: Tablet,
+  bot: Bot,
 };
 
 export default function LogsPage() {
@@ -88,7 +111,7 @@ export default function LogsPage() {
             <p className="text-slate-500 text-sm mt-1">Real scan and tap events loaded from the logs table.</p>
           </div>
           <div className="relative w-full lg:w-80">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+            <Search className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400" aria-hidden="true" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -104,7 +127,7 @@ export default function LogsPage() {
         <div className="bg-white border border-slate-200 p-4 rounded-xl">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Events</span>
-            <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">ads_click</span>
+            <MousePointerClick className="h-8 w-8 rounded bg-blue-50 p-1 text-[#0066ff]" aria-hidden="true" />
           </div>
           <div className="font-mono text-2xl font-semibold text-slate-900">{activity.length.toLocaleString()}</div>
           <div className="mt-2 text-xs font-bold text-slate-400">{filteredActivity.length.toLocaleString()} shown</div>
@@ -113,7 +136,7 @@ export default function LogsPage() {
         <div className="bg-white border border-slate-200 p-4 rounded-xl">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Tracked URLs</span>
-            <span className="material-symbols-outlined text-[#00655c] bg-[#00655c]/10 p-1 rounded">link</span>
+            <Link2 className="h-8 w-8 rounded bg-[#00655c]/10 p-1 text-[#00655c]" aria-hidden="true" />
           </div>
           <div className="font-mono text-2xl font-semibold text-slate-900">{uniqueLinks.toLocaleString()}</div>
           <div className="mt-2 text-xs font-bold text-slate-400">With recorded activity</div>
@@ -122,7 +145,7 @@ export default function LogsPage() {
         <div className="bg-white border border-slate-200 p-4 rounded-xl">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Latest Event</span>
-            <span className="material-symbols-outlined text-[#0050cb] bg-blue-50 p-1 rounded">schedule</span>
+            <Clock3 className="h-8 w-8 rounded bg-blue-50 p-1 text-[#0050cb]" aria-hidden="true" />
           </div>
           <div className="font-mono text-2xl font-semibold text-slate-900">{latestActivity ? getTimeAgo(latestActivity.createdAt) : '-'}</div>
           <div className="mt-2 text-xs font-bold text-slate-400 truncate">{latestActivity?.links?.slug ? `/${latestActivity.links.slug}` : 'No activity yet'}</div>
@@ -131,7 +154,7 @@ export default function LogsPage() {
         <div className="bg-white border border-slate-200 p-4 rounded-xl">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Top Device</span>
-            <span className="material-symbols-outlined text-slate-500 bg-slate-100 p-1 rounded">devices</span>
+            <MonitorSmartphone className="h-8 w-8 rounded bg-slate-100 p-1 text-slate-500" aria-hidden="true" />
           </div>
           <div className="font-mono text-2xl font-semibold text-slate-900 capitalize">{mostUsedDevice?.[1] ? mostUsedDevice[0] : '-'}</div>
           <div className="mt-2 text-xs font-bold text-slate-400">{mostUsedDevice?.[1] || 0} events</div>
@@ -150,11 +173,10 @@ export default function LogsPage() {
                 <button
                   key={device}
                   onClick={() => setDeviceFilter(device)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
-                    deviceFilter === device
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${deviceFilter === device
                       ? 'bg-[#0050cb] text-white'
                       : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'
-                  }`}
+                    }`}
                 >
                   {device}
                 </button>
@@ -179,13 +201,14 @@ export default function LogsPage() {
                 {filteredActivity.map((item) => {
                   const device = agentToDevice(item.device);
                   const slug = item.links?.slug || 'unknown';
+                  const DeviceIcon = deviceIcons[device as Exclude<DeviceFilter, 'all'>] || Monitor;
 
                   return (
                     <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <div className="h-9 w-9 shrink-0 rounded-lg bg-[#00655c]/10 text-[#00655c] flex items-center justify-center">
-                            <span className="material-symbols-outlined text-lg">ads_click</span>
+                            <MousePointerClick className="h-[18px] w-[18px]" aria-hidden="true" />
                           </div>
                           <div>
                             <div className="font-mono text-sm font-semibold text-slate-900">#{item.id}</div>
@@ -199,10 +222,10 @@ export default function LogsPage() {
                           {item.links?.slug && (
                             <button
                               onClick={() => copyToClipboard(item.links.slug, baseUrl)}
-                              className="material-symbols-outlined text-sm text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="text-slate-400 opacity-0 transition-opacity group-hover:opacity-100"
                               title="Copy short URL"
                             >
-                              content_copy
+                              <Copy className="h-4 w-4" aria-hidden="true" />
                             </button>
                           )}
                         </div>
@@ -213,15 +236,14 @@ export default function LogsPage() {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-1 text-sm text-slate-600">
-                          <span className="material-symbols-outlined text-sm text-slate-400">location_on</span>
+                          {/* <span className="material-symbols-outlined text-sm text-slate-400">location_on</span> */}
+                          <MapPin className="h-5 w-5 text-slate-400" aria-hidden="true" />
                           <span>{item.location || 'Unknown'}</span>
                         </div>
                       </td>
                       <td className="py-3 px-4">
                         <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-bold uppercase tracking-wider text-slate-600">
-                          <span className="material-symbols-outlined text-sm">
-                            {device === 'mobile' ? 'smartphone' : device === 'tablet' ? 'tablet_mac' : device === 'bot' ? 'memory' : 'desktop_windows'}
-                          </span>
+                          <DeviceIcon className="h-4 w-4" aria-hidden="true" />
                           {device}
                         </span>
                       </td>
@@ -237,7 +259,7 @@ export default function LogsPage() {
                             target="_blank"
                           >
                             Open
-                            <span className="material-symbols-outlined text-sm">open_in_new</span>
+                            <ExternalLink className="h-4 w-4" aria-hidden="true" />
                           </a>
                         ) : (
                           <span className="text-xs text-slate-400">No URL</span>
@@ -253,7 +275,7 @@ export default function LogsPage() {
           {!loading && filteredActivity.length === 0 && (
             <div className="px-6 py-12 text-center">
               <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
-                <span className="material-symbols-outlined">travel_explore</span>
+                <Radar className="h-5 w-5" aria-hidden="true" />
               </div>
               <h3 className="text-sm font-semibold text-slate-900">No logs found</h3>
               <p className="mt-1 text-sm text-slate-500">Try changing the search text or device filter.</p>
