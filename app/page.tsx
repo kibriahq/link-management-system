@@ -45,7 +45,7 @@ export default function Dashboard() {
 
   const topLinks = topActiveLinks(3);
   const activeUrls = links.filter((l) => l.status === 'active').length;
-  const registeredUsers = 8520;
+  const brokenLinks = links.filter(link => link.status === 'broken').length;
   const systemHealth = 99.9;
   const clicksTrend = useMemo(() => {
     const validTimes = activity
@@ -135,15 +135,22 @@ export default function Dashboard() {
         <div className="bg-white border border-slate-200 p-4 rounded-xl flex flex-col justify-between hover:border-[#0050cb] transition-colors">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-slate-500">Registered User</span>
-              <span className="material-symbols-outlined text-slate-400 text-sm">group</span>
+              <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Broken Links</span>
+              <span className="material-symbols-outlined text-red-500 bg-red-50 p-1 rounded text-sm">warning</span>
             </div>
-            <div className="font-mono text-2xl font-semibold tracking-tight text-slate-900">{registeredUsers.toLocaleString()}</div>
+            <div className="font-mono text-2xl font-semibold tracking-tight text-slate-900">{brokenLinks.toLocaleString()}</div>
           </div>
+          {brokenLinks > 0 ? (
+            <div className="mt-2 flex items-center gap-1 text-xs font-bold text-red-500">
+              <span className="material-symbols-outlined text-sm">priority_high</span>
+              Immediate action required
+            </div>
+          ) : (
           <div className="mt-4 flex items-center gap-1 text-xs text-slate-400">
             <span className="material-symbols-outlined text-sm text-[#0050cb]">verified_user</span>
-            98.2% verified accounts
+            All links are healthy
           </div>
+          )}
         </div>
 
         <div className="bg-white border border-slate-200 p-4 rounded-xl flex flex-col justify-between hover:border-[#0050cb] transition-colors">
