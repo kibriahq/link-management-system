@@ -27,7 +27,7 @@ function logAnalytics(linkId: string | number, request: Request): void {
       link_id: linkId,
       ip,
       user_agent: userAgent,
-      location: buildLocation(country, city),
+      location: buildLocation(decodeURIComponent(country), decodeURIComponent(city)),
     }),
   }).catch(console.error);
 }
