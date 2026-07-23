@@ -1,5 +1,6 @@
 'use client';
 
+import { updatePassword } from '@/lib/actions/update-password';
 import { updateUserProfile } from '@/lib/actions/update-profile';
 import { useAuth } from '@/lib/AuthContext';
 import { useInfo } from '@/lib/InfoContext';
@@ -24,6 +25,10 @@ export default function SettingsPage() {
     qrCodeSize: 300,
   });
 
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
   const tabs = [
     { id: 'general', name: 'General', icon: 'settings', disabled: false },
     { id: 'security', name: 'Security', icon: 'security', disabled: false },
@@ -42,13 +47,32 @@ export default function SettingsPage() {
     try {
       await updateUserProfile(settings.name, settings.defaultRedirect, settings.email)
 
-      toast.success(`Updated ${settings.email !== user?.email ? 'and mail confirmation sent': ''} successfully`);
+      toast.success(`Updated ${settings.email !== user?.email ? 'and mail confirmation sent' : ''} successfully`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error saving settings');
       console.error('Error saving settings:', error);
     }
   };
 
+  const handlePasswordChange = async () => {
+    if(newPassword !== confirmPassword) {
+      toast.error('New password and confirm password do not match');
+      return;
+    }
+    try {
+      const {success, error} = await updatePassword(currentPassword, newPassword);
+      if (success) {
+        toast.success('Password updated successfully');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        toast.error(error || 'Error updating password');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error updating password');
+    }
+  }
   return (
     <div className="space-y-6">
       <header className="mb-6">
@@ -201,22 +225,22 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 block">Current Password</label>
-                    <input className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all" type="password" />
+                    <input value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all" type="password" />
                   </div>
                   <div></div>
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 block">New Password</label>
-                    <input className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all" type="password" />
+                    <input value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all" type="password" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 block">Confirm New Password</label>
-                    <input className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all" type="password" />
+                    <input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all" type="password" />
                   </div>
                 </div>
               </div>
 
               <div className="pt-4 border-t border-slate-200 flex justify-end">
-                <button className="px-6 py-2 bg-[#0066ff] text-white font-semibold rounded-lg hover:opacity-90 transition-opacity">
+                <button onClick={handlePasswordChange} className="px-6 py-2 bg-[#0066ff] text-white font-semibold rounded-lg hover:opacity-90 transition-opacity">
                   Update Password
                 </button>
               </div>
