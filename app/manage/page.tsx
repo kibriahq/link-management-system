@@ -5,6 +5,7 @@ import { useLinks } from '@/lib/LinkContext';
 import { useInfo } from '@/lib/InfoContext';
 import copyToClipboard from '@/utils/copyToClipboard';
 import { LinkItem } from '@/lib/types';
+import { useAuth } from '@/lib/AuthContext';
 
 const getGrowthStats = (dates: string[], windowDays = 30) => {
   const windowMs = windowDays * 24 * 60 * 60 * 1000;
@@ -72,6 +73,17 @@ export default function ManagePage() {
   const ctr = links.length > 0 ? ((links.reduce((sum, link) => sum + (link.logs?.length || 0), 0) / links.length) * 100).toFixed(2) : '0.00';
   const linkGrowth = useMemo(() => getGrowthStats(links.map((link) => link.createdAt)), [links]);
   const clickGrowth = useMemo(() => getGrowthStats(activity.map((item) => item.createdAt)), [activity]);
+
+  const { loading, user } = useAuth();
+
+  
+  if(loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <span className="material-symbols-outlined text-4xl text-[#0050cb] animate-spin">autorenew</span>
+      </div>
+    );
+  }
 
   const filteredLinks = links.filter((link) =>
     filter === 'active' ? link.status === 'active' : link.status !== 'active'

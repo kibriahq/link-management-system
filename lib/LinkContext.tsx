@@ -61,13 +61,14 @@ export function LinkProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const refetch = async () => {
     try {
       const [linksRes, activityRes, usersRes] = await Promise.all([
-        supabase.from('links').select(`*, logs!logs_link_id_fkey (*)`).order('id', { ascending: false }),
-        supabase.from('logs').select(`*, links!logs_link_id_fkey (*)`).order('created_at', { ascending: false }),
+        supabase.from('links').select(`*, logs!logs_link_id_fkey (*)`).order('id', { ascending: false }).eq('user_id', user?.id),
+        // supabase.from('logs').select(`*, links!logs_link_id_fkey (*)`).order('created_at', { ascending: false }),
+        supabase.from('logs').select(`*,links:logs_link_id_fkey!inner (*)`).eq('links.user_id', user?.id).order('created_at', { ascending: false }),
         supabase.from('users').select('*'),
       ]);
 
@@ -75,7 +76,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
         setLinks(linksRes.data.map(transformLink));
       }
 
-      console.log(activityRes.data);
+      console.log(linksRes.data, user?.id);
 
       if (activityRes.data) {
         setActivity(activityRes.data.map(item => ({
@@ -112,7 +113,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
     };
     init();
     return () => { cancelled = true; };
-  }, []);
+  }, [authLoading]);
 
   const topActiveLinks = (length = 3) => {
     const sorted = [...links].sort((a, b) => (b.logs?.length || 0) - (a.logs?.length || 0));
