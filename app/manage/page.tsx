@@ -241,8 +241,8 @@ export default function ManagePage() {
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <table className="w-full text-left border-collapse">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto shadow-sm">
+        <table className="w-full min-w-[920px] text-left border-collapse">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="py-3 px-4 w-10">
