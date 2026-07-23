@@ -4,8 +4,15 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from './supabase-client';
 
+type Profile = {
+  name: string;
+  email?: string;
+  default_redirect?: string;
+}
+
 interface AuthContextType {
   user: User | null;
+  profile: Profile | null;
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -13,23 +20,43 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
+
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+    if (error) {
+      console.error('Error fetching profile:', error);
+      return null;
+    }
+    setProfile(data as Profile);
+  }
+
+  const fetchUser = async () => {
+    const { data } = await supabase.auth.getUser();
+    
+    setUser(data.user);
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      fetchUser();
+      fetchProfile(session?.user?.id ?? '');
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      fetchUser();
+      fetchProfile(session?.user?.id ?? '');
       setLoading(false);
     });
 
@@ -57,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, profile, session, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

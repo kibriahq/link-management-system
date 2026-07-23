@@ -9,6 +9,7 @@ import TopNav from "@/components/TopNav";
 import Children from "@/components/Children";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import InfoProvider from "@/lib/InfoContext";
+import { ToastContainer } from 'react-toastify';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,6 +40,7 @@ export default function RootLayout({
             </LinkProvider>
           </AuthProvider>
         </InfoProvider>
+        <ToastContainer />
       </body>
     </html>
   );
