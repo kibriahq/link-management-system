@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 
 export default function SettingsPage() {
   const { domain } = useInfo();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
 
   const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState({
@@ -55,12 +55,12 @@ export default function SettingsPage() {
   };
 
   const handlePasswordChange = async () => {
-    if(newPassword !== confirmPassword) {
+    if (newPassword !== confirmPassword) {
       toast.error('New password and confirm password do not match');
       return;
     }
     try {
-      const {success, error} = await updatePassword(currentPassword, newPassword);
+      const { success, error } = await updatePassword(currentPassword, newPassword);
       if (success) {
         toast.success('Password updated successfully');
         setCurrentPassword('');
@@ -73,6 +73,11 @@ export default function SettingsPage() {
       toast.error(error instanceof Error ? error.message : 'Error updating password');
     }
   }
+
+  const handleLogout = () => {
+    signOut();
+  };
+
   return (
     <div className="space-y-6">
       <header className="mb-6">
@@ -80,15 +85,15 @@ export default function SettingsPage() {
         <p className="text-slate-500 text-sm mt-1">Manage your account and application preferences.</p>
       </header>
 
-      <div className="flex gap-6">
-        <div className="w-64 shrink-0">
-          <nav className="space-y-1">
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="md:w-64 shrink-0">
+          <nav className="space-y-1 flex flex-wrap">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 disabled={tab.disabled}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors ${activeTab === tab.id
+                className={`md:w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors ${activeTab === tab.id
                   ? 'bg-blue-50 text-[#0050cb] border-r-2 border-[#0050cb]'
                   : 'text-slate-600 hover:bg-slate-100'
                   } ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -97,6 +102,13 @@ export default function SettingsPage() {
                 {tab.name}
               </button>
             ))}
+            <button
+              onClick={handleLogout}
+              className={`md:w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-red-50 text-red-400 hover:text-red-500 hover:border-r-2 border-red-500`}
+            >
+              <span className="material-symbols-outlined text-sm">logout</span>
+              Logout
+            </button>
           </nav>
         </div>
 
