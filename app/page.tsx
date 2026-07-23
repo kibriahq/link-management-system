@@ -223,15 +223,15 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-[#0066ff]/5 border border-[#0066ff]/20 p-6 rounded-2xl flex items-center gap-6">
+          <div className="bg-[#0066ff]/5 border border-[#0066ff]/20 p-6 rounded-2xl flex flex-col sm:flex-row items-center gap-6">
             <div className="w-12 h-12 bg-[#0066ff] rounded-xl flex items-center justify-center text-white">
               <span className="material-symbols-outlined">auto_awesome</span>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 text-center sm:text-left">
               <h3 className="text-sm font-semibold text-slate-900">Optimization Tip</h3>
-              <p className="text-sm text-slate-600 mt-1">Your support-bot link is receiving high traffic from Germany. Consider localizing the destination page for better conversion.</p>
+              <p className="text-sm text-slate-600 mt-1">Your support-bot link is receiving high traffic{/* from Germany*/}. Consider localizing the destination page for better conversion.</p>
             </div>
-            <button className="bg-[#0066ff] text-white py-2 px-4 rounded-xl text-sm font-semibold hover:opacity-90">View Insight</button>
+            <Link href="/logs" className="bg-[#0066ff] text-white py-2 px-4 rounded-xl text-sm font-semibold hover:opacity-90 w-full sm:w-auto">View Insight</Link>
           </div>
         </div>
 
@@ -262,9 +262,9 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-          <button className="w-full py-4 text-center text-slate-500 text-sm font-semibold hover:bg-slate-50 transition-colors border-t border-slate-100">
-            View Historical Feed
-          </button>
+          <Link href="/logs" className="w-full py-4 text-center text-slate-500 text-sm font-semibold hover:bg-slate-50 transition-colors border-t border-slate-100">
+            View All Activity
+          </Link>
         </div>
       </div>
     </div>
