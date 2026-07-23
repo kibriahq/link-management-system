@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
 export default function SettingsPage() {
-  const { domain, baseUrl } = useInfo();
+  const { domain } = useInfo();
   const { user, profile, loading } = useAuth();
 
   const [activeTab, setActiveTab] = useState('general');
@@ -36,7 +36,7 @@ export default function SettingsPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSettings((prev) => ({ ...prev, name: profile?.name || '', defaultRedirect: profile?.default_redirect || '', email: user?.email || '' }));
 
-  }, [loading, profile?.name, profile?.defaultRedirect]);
+  }, [loading, profile?.name, profile?.default_redirect, user?.email]);
 
   const handleSave = async () => {
     try {
