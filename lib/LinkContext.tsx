@@ -5,6 +5,7 @@ import { supabase } from './supabase-client';
 import { LinkItem, InputLink, ActivityItem, User } from './types';
 import { redirect } from 'next/navigation';
 import { useAuth } from './AuthContext';
+import { toast } from 'react-toastify';
 // import { revalidateTag } from "next/cache";
 
 // export async function clearCache(slug: string) {
@@ -61,14 +62,14 @@ export function LinkProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const { user, loading: authLoading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
 
   const refetch = async () => {
     try {
       const [linksRes, activityRes, usersRes] = await Promise.all([
-        supabase.from('links').select(`*, logs!logs_link_id_fkey (*)`).order('id', { ascending: false }).eq('user_id', user?.id),
+        supabase.from('links').select(`*, logs!logs_link_id_fkey (*)`).order('id', { ascending: false }).eq('user_id', session?.user?.id),
         // supabase.from('logs').select(`*, links!logs_link_id_fkey (*)`).order('created_at', { ascending: false }),
-        supabase.from('logs').select(`*,links:logs_link_id_fkey!inner (*)`).eq('links.user_id', user?.id).order('created_at', { ascending: false }),
+        supabase.from('logs').select(`*,links:logs_link_id_fkey!inner (*)`).eq('links.user_id', session?.user?.id).order('created_at', { ascending: false }),
         supabase.from('users').select('*'),
       ]);
 
@@ -95,6 +96,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
       }
       setLoading(false);
     } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error loading data');
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
@@ -143,7 +145,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
       name: link.name,
       slug: link.slug,
       url: link.url,
-      user_id: user?.id || null,
+      user_id: session?.user?.id || null,
       status: link.status || 'active',
     }).select().single();
 
@@ -164,7 +166,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
         name: link.name,
         slug: link.slug,
         url: link.url,
-        user_id: user?.id || null,
+        user_id: session?.user?.id || null,
       }))
     ).select();
 
