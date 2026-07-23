@@ -3,10 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useSidebar } from '@/lib/SidebarContext';
+import Image from 'next/image';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function TopNav() {
   const [searchQuery, setSearchQuery] = useState('');
   const { toggle } = useSidebar();
+  const { signOut } = useAuth();
 
   return (
     <header className="fixed top-0 right-0 z-40 flex items-center justify-between px-4 lg:px-8 h-16 border-b border-slate-200 bg-white/80 backdrop-blur-md lg:w-[calc(100%-240px)] w-full">
@@ -33,24 +36,37 @@ export default function TopNav() {
       <div className="flex items-center gap-4 lg:gap-6">
         <Link
           href="/manage/new"
-          className="hidden sm:flex bg-[#0066ff] text-white px-4 py-2 rounded-lg text-sm font-semibold items-center gap-2 hover:opacity-90 transition-opacity"
+          className="flex sm:flex bg-[#0066ff] text-white px-4 py-2 rounded-lg text-sm font-semibold items-center gap-2 hover:opacity-90 transition-opacity"
         >
           <span className="material-symbols-outlined text-sm">add</span>
-          Create New URL
+          Create <span className="hidden sm:block">New URL</span>
         </Link>
         <div className="flex items-center gap-2 lg:gap-4 text-slate-500">
           <button className="hover:text-[#0050cb] transition-colors p-2">
             <span className="material-symbols-outlined">notifications</span>
           </button>
-          <button className="hover:text-[#0050cb] transition-colors p-2">
+          <Link href="mailto:hello@kibria.dev" className="hover:text-[#0050cb] transition-colors p-2">
             <span className="material-symbols-outlined">help_outline</span>
-          </button>
-          <div className="h-8 w-8 rounded-full overflow-hidden border border-slate-200">
-            <img
+          </Link>
+          <div className="h-10 w-10 relative rounded-full border border-slate-200 group">
+            <Image
+              height={150}
+              width={150}
               alt="User Avatar"
-              className="w-full h-full object-cover"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2NzYhXYCPNN9KF4645jdFTaWNG7eQJKhCRK1_UbEglki97wDGWJ9wDBn4NMYPFo9xFi2tC10Ayza9S8IVfNLG2K_c664autvsYENRPPszcMppC7jPnPANplsPGTF_V_QohobUmWqmfUtr03Cir7C9MWvuzkoXXFRmZZHvRm-78HgOiSEa_3qGsE2c4pvhTamovkBvpBWwsNTBCtLl48YrHSrueJomEu_-oeSljoSyPrHUinXWG83mWkvYlA6nQccyRb6PTkLRf78"
+              className="w-full h-full object-cover rounded-full"
+              src="/avatar.png"
             />
+
+            <div className="absolute right-0 mt-1 bg-white shadow-lg rounded-lg py-2 flex-col z-50 text-left flex invisible group-hover:visible">
+              <a href="/settings" className="text-sm text-slate-600 hover:text-[#0050cb] hover:bg-blue-50 flex items-center gap-2 py-2 px-4">
+                <span style={{ fontSize: '20px' }} className="material-symbols-outlined text-sm">settings</span>
+                Settings
+              </a>
+              <button onClick={() => signOut()} className="text-sm cursor-pointer text-slate-600 hover:text-red-500 hover:bg-red-50 flex items-center gap-2 py-2 px-4">
+                <span style={{ fontSize: '20px' }} className="material-symbols-outlined text-sm">logout</span>
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>

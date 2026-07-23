@@ -15,7 +15,7 @@ const navItems = [
 ];
 
 const bottomNavItems = [
-  { name: 'Support', href: '/support', icon: 'help' },
+  { name: 'Support', href: 'mailto:hello@kibria.dev', icon: 'help' },
   { name: 'Documentation', href: '/docs', icon: 'description' },
 ];
 
