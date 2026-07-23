@@ -110,7 +110,7 @@ export default function ManagePage() {
   };
 
   const handleExportCsv = () => {
-    const headers = ['id', 'name', 'slug', 'short_url', 'destination', 'status', 'total_scans', 'created_at', 'user_id'];
+    const headers = ['id', 'batch', 'slug', 'short_url', 'destination', 'status', 'total_scans', 'created_at'];
     const rows = links.map((link) => [
       link.id,
       link.name || '',
@@ -120,7 +120,6 @@ export default function ManagePage() {
       link.status || 'active',
       link.logs?.length || 0,
       link.createdAt,
-      link.userId || '',
     ]);
     const csv = [headers, ...rows].map((row) => row.map(toCsvCell).join(',')).join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
