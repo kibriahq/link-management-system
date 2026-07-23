@@ -29,13 +29,27 @@ export default function BulkGeneratorPage() {
   const [step, setStep] = useState(1);
   const [batchName, setBatchName] = useState('');
 
-  const [urlCount, setUrlCount] = useState(100);
+  const [urlCount, setUrlCount] = useState(0);
   const [destinationUrl, setDestinationUrl] = useState('');
+  const [urlArr, setUrlArr] = useState([] as string[]);
   const [destinationPattern, setDestinationPattern] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
   const { domain, baseUrl } = useInfo();
 
+  const handleDestination = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDestinationUrl(e.target.value);
+
+    const urlArr = e.target.value.split(',');
+    setUrlArr(urlArr);
+
+    if (urlArr[urlArr.length - 1] === '') {
+      setUrlCount(urlArr.length - 1);
+    } else {
+      setUrlCount(urlArr.length);
+    }
+
+  };
 
   const handleGenerate = useCallback(async () => {
     if (urlCount < 1 || urlCount > 50000) {
@@ -68,7 +82,7 @@ export default function BulkGeneratorPage() {
       generatedLinks.push({
         name: batchName || null,
         slug,
-        url: destinationUrl,
+        url: urlArr[i],
         userId: null,
       });
     }
@@ -134,7 +148,7 @@ export default function BulkGeneratorPage() {
             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${step >= 3 ? 'bg-[#0066ff] text-white shadow-lg shadow-[#0066ff]/20' : 'bg-slate-100 text-slate-400 border border-slate-200'}`}>
               3
             </div>
-            <span className={`text-xs font-bold uppercase ${step >= 3 ? 'text-[#0050cb]' : 'text-slate-400'}`}>Assignments</span>
+            <span className={`text-xs font-bold uppercase ${step >= 3 ? 'text-[#0050cb]' : 'text-slate-400'}`}>Confirmation</span>
           </div>
         </div>
       </div>
@@ -198,27 +212,28 @@ export default function BulkGeneratorPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 block">Number of URLs to generate</label>
-                <div className="relative">
-                  <input
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg font-mono text-base focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all"
-                    type="number"
-                    value={urlCount}
-                    onChange={(e) => setUrlCount(Number(e.target.value))}
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">MAX 50,000</span>
-                </div>
-              </div>
-              <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700 block">Destination URL</label>
                 <div className="relative">
                   <input
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg font-mono text-base focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all"
                     type="url"
                     value={destinationUrl}
-                    onChange={(e) => setDestinationUrl(e.target.value)}
+                    onChange={handleDestination}
                     placeholder='e.g. https://yoursite.com/product/{product_slug}'
                   />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 block">Number of URLs to generate</label>
+                <div className="relative">
+                  <input
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg font-mono text-base focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all text-slate-500"
+                    type="number"
+                    value={urlCount}
+                    disabled
+                    onChange={(e) => setUrlCount(Number(e.target.value))}
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">MAX 50,000</span>
                 </div>
               </div>
               <div className="md:col-span-2 space-y-2">
@@ -259,42 +274,17 @@ export default function BulkGeneratorPage() {
           <section className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
             <div className="flex items-start gap-4 mb-8">
               <div className="p-3 bg-blue-50 rounded-lg">
-                <span className="material-symbols-outlined text-[#0050cb]">group_add</span>
+                <span className="material-symbols-outlined text-[#0050cb]">add_link</span>
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xl font-semibold text-slate-900">Step 3: Assignments</h3>
-                  <span className="px-2 py-0.5 bg-slate-100 text-[10px] font-bold text-slate-500 rounded uppercase">Optional</span>
+                  <h3 className="text-xl font-semibold text-slate-900">Step 3: Confirmation</h3>
                 </div>
-                <p className="text-sm text-slate-500">Restrict campaign management to specific team members.</p>
+                <p className="text-sm text-slate-500">Confirm before generating the links.</p>
               </div>
             </div>
             <div className="space-y-4">
-              <label className="text-sm font-semibold text-slate-700 block">Assigned Team Members</label>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {selectedUsers.map((userId) => {
-                  const user = mockUsers.find((u) => u.id === userId);
-                  if (!user) return null;
-                  return (
-                    <div key={userId} className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-full">
-                      <img className="w-5 h-5 rounded-full object-cover" src={user.avatar} alt="" />
-                      <span className="text-xs font-bold text-[#0050cb]">{user.name}</span>
-                      <button onClick={() => toggleUser(userId)} className="material-symbols-outlined text-sm text-[#0050cb] cursor-pointer">close</button>
-                    </div>
-                  );
-                })}
-                <button
-                  onClick={() => {
-                    const availableUser = mockUsers.find((u) => !selectedUsers.includes(u.id));
-                    if (availableUser) toggleUser(availableUser.id);
-                  }}
-                  className="flex items-center gap-2 px-3 py-1.5 border border-dashed border-slate-300 rounded-full hover:border-[#0050cb] hover:bg-slate-50 transition-all text-slate-500 hover:text-[#0050cb]"
-                >
-                  <span className="material-symbols-outlined text-sm">add</span>
-                  <span className="text-xs font-bold">Add Member</span>
-                </button>
-              </div>
-              <p className="text-red-400">(This will not work for now. Just click Generate button)</p>
+              <label className="text-slate-700 block text-center font-semibold text-2xl py-8">Total Links: {urlCount}</label>
             </div>
             <div className="mt-6 flex justify-between">
               <button
@@ -308,7 +298,7 @@ export default function BulkGeneratorPage() {
                 className="px-8 py-2 bg-[#0066ff] text-white font-bold rounded-lg hover:opacity-90 transition-opacity flex items-center gap-3 shadow-xl shadow-[#0066ff]/20"
               >
                 <span className="material-symbols-outlined">rocket_launch</span>
-                Generate and Export CSV
+                Confirm and Generate
               </button>
             </div>
           </section>
@@ -316,27 +306,7 @@ export default function BulkGeneratorPage() {
       </div>
 
       <div className="mt-16">
-        <div className="flex items-center justify-between mb-6">
-          <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Recent Bulk Batches</h4>
-          <a className="text-sm font-bold text-[#0050cb] hover:underline" href="#">View all history</a>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* {bulkBatches.slice(0, 6).map((batch) => (
-            <div key={batch.id} className="bg-white p-4 border border-slate-100 rounded-lg flex items-center gap-4">
-              <div className={`w-10 h-10 rounded flex items-center justify-center ${batch.status === 'completed' ? 'bg-teal-50' : 'bg-blue-50'
-                }`}>
-                <span className={`material-symbols-outlined ${batch.status === 'completed' ? 'text-teal-600' : 'text-blue-600'
-                  }`}>
-                  {batch.status === 'completed' ? 'check_circle' : 'cloud_download'}
-                </span>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-900 truncate">{batch.name}</p>
-                <p className="text-[10px] text-slate-400">{batch.linkCount.toLocaleString()} links - {batch.createdAt}</p>
-              </div>
-            </div>
-          ))} */}
-        </div>
+       
       </div>
     </div>
   );

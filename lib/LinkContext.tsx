@@ -76,8 +76,6 @@ export function LinkProvider({ children }: { children: ReactNode }) {
         setLinks(linksRes.data.map(transformLink));
       }
 
-      console.log(linksRes.data, user?.id);
-
       if (activityRes.data) {
         setActivity(activityRes.data.map(item => ({
           id: item.id.toString(),
@@ -199,8 +197,6 @@ export function LinkProvider({ children }: { children: ReactNode }) {
       console.error('Error updating link:', error);
       throw error;
     }
-
-
 
     clearCache(slug || '');
     // clearCache(updates.slug || '');
