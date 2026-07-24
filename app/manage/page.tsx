@@ -74,12 +74,12 @@ export default function ManagePage() {
   const { baseUrl } = useInfo();
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const { loading, user } = useAuth();
 
   const ctr = links.length > 0 ? ((links.reduce((sum, link) => sum + (link.logs?.length || 0), 0) / links.length) * 100).toFixed(2) : '0.00';
   const linkGrowth = useMemo(() => getGrowthStats(links.map((link) => link.createdAt)), [links]);
   const clickGrowth = useMemo(() => getGrowthStats(activity.map((item) => item.createdAt)), [activity]);
-
-  const { loading, user } = useAuth();
+  const brokenLinks = links.filter(link => link.status === 'broken').length;
 
   const handleSelect = (id: number) => {
     setSelectedIds((prev) =>
@@ -231,11 +231,18 @@ export default function ManagePage() {
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Broken Links</span>
             <span className="material-symbols-outlined text-red-500 bg-red-50 p-1 rounded">warning</span>
           </div>
-          <div className="font-mono text-2xl font-semibold text-slate-900">{links.filter(link => link.status === 'broken').length}</div>
-          <div className="mt-2 flex items-center gap-1 text-xs font-bold text-red-500">
-            <span className="material-symbols-outlined text-sm">priority_high</span>
-            Immediate action required
-          </div>
+          <div className="font-mono text-2xl font-semibold text-slate-900">{brokenLinks}</div>
+          {brokenLinks > 0 ? (
+            <div className="mt-2 flex items-center gap-1 text-xs font-bold text-red-500">
+              <span className="material-symbols-outlined text-sm">priority_high</span>
+              Immediate action required
+            </div>
+          ) : (
+            <div className="mt-4 flex items-center gap-1 text-xs text-slate-400">
+              <span className="material-symbols-outlined text-sm text-[#0050cb]">verified_user</span>
+              All links are healthy
+            </div>
+          )}
         </div>
       </div>
 
