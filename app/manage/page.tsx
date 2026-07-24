@@ -1,11 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLinks } from '@/lib/LinkContext';
 import { useInfo } from '@/lib/InfoContext';
 import copyToClipboard from '@/utils/copyToClipboard';
 import { LinkItem } from '@/lib/types';
 import { useAuth } from '@/lib/AuthContext';
+import { supabase } from '@/lib/supabase-client';
+import { toast } from 'react-toastify';
 
 const getGrowthStats = (dates: string[], windowDays = 30) => {
   const windowMs = windowDays * 24 * 60 * 60 * 1000;
@@ -65,10 +67,13 @@ const toCsvCell = (value: unknown) => {
 export default function ManagePage() {
   const { links, updateLink, deleteLink, activity } = useLinks();
   const [filter, setFilter] = useState<'active' | 'broken'>('active');
+  const [filteredLinks, setFilteredLinks] = useState<LinkItem[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
   const [qrLink, setQrLink] = useState<LinkItem | null>(null);
   const { baseUrl } = useInfo();
+
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const ctr = links.length > 0 ? ((links.reduce((sum, link) => sum + (link.logs?.length || 0), 0) / links.length) * 100).toFixed(2) : '0.00';
   const linkGrowth = useMemo(() => getGrowthStats(links.map((link) => link.createdAt)), [links]);
@@ -76,22 +81,46 @@ export default function ManagePage() {
 
   const { loading, user } = useAuth();
 
-  
-  if(loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <span className="material-symbols-outlined text-4xl text-[#0050cb] animate-spin">autorenew</span>
-      </div>
+  const handleSelect = (id: number) => {
+    setSelectedIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((item) => item !== id)
+        : [...prev, id]
     );
-  }
+  };
 
-  const filteredLinks = links.filter((link) =>
-    filter === 'active' ? link.status === 'active' : link.status !== 'active'
-  );
+
+  useEffect(() => {
+    const newFilteredLinks = links.filter((link) => link.status === filter);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFilteredLinks(newFilteredLinks);
+  }, [links, filter]);
+
   const qrShortUrl = qrLink ? `${baseUrl}${qrLink.slug}` : '';
   const qrImageUrl = qrShortUrl
     ? `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=16&data=${encodeURIComponent(qrShortUrl)}`
     : '';
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (confirm(`Are you sure you want to delete ${selectedIds.length} selected link(s)? This action cannot be undone.`)) {
+      // Supabase example
+      const { error } = await supabase
+        .from("links")
+        .delete()
+        .in("id", selectedIds);
+
+      if (!error) {
+        // setFilteredLinks(filteredLinks.filter((link) => !selectedIds.includes(link.id)));
+        setFilteredLinks((prev) =>
+          prev.filter((row) => !selectedIds.includes(row.id))
+        );
+
+        toast.success(`Deleted ${selectedIds.length} link(s) successfully.`);
+        setSelectedIds([]);
+      }
+    }
+  };
 
   const handleEdit = (link: typeof links[0]) => {
     setEditingId(link.id);
@@ -133,6 +162,14 @@ export default function ManagePage() {
     anchor.remove();
     URL.revokeObjectURL(url);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <span className="material-symbols-outlined text-4xl text-[#0050cb] animate-spin">autorenew</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -205,8 +242,8 @@ export default function ManagePage() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="relative group">
-            <button className="bg-white border border-slate-200 py-1.5 px-4 rounded-xl text-sm font-semibold text-slate-900 flex items-center gap-2 hover:bg-slate-50">
-              Bulk Actions
+            <button onClick={handleBulkDelete} className="bg-white border border-slate-200 py-1.5 px-4 rounded-xl text-sm font-semibold text-slate-900 flex items-center gap-2 hover:bg-slate-50">
+              Bulk Delete
               <span className="material-symbols-outlined text-sm">expand_more</span>
             </button>
           </div>
@@ -246,7 +283,23 @@ export default function ManagePage() {
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="py-3 px-4 w-10">
-                {/* <input onChange={() => {}} className="rounded-sm border-slate-300 text-[#0050cb] focus:ring-[#0050cb]/20" type="checkbox" /> */}
+                <input
+                  className="rounded-sm border-slate-300 text-[#0050cb] focus:ring-[#0050cb]/20"
+                  type="checkbox"
+                  checked={
+                    filteredLinks.length > 0 &&
+                    selectedIds.length === filteredLinks.length
+                  }
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedIds(filteredLinks.map((link) => link.id));
+                    } else {
+                      setSelectedIds([]);
+                    }
+                  }}
+                />
+              </th>
+              <th className="py-3 px-4 w-10">
                 <p className="py-3 px-4 text-sm font-semibold text-slate-600">Id</p>
               </th>
               <th className="py-3 px-4 text-sm font-semibold text-slate-600">Short URL</th>
@@ -261,7 +314,14 @@ export default function ManagePage() {
           <tbody className="divide-y divide-slate-100">
             {filteredLinks.map((link) => (
               <tr key={link.id} className={`hover:bg-slate-50 transition-colors ${link.status === 'inactive' || link.status === 'broken' ? 'opacity-70 grayscale-[0.3]' : ''}`}>
-
+                <td className="py-3 px-4">
+                  <input
+                    className="rounded-sm border-slate-300 text-primary focus:ring-primary/20"
+                    type="checkbox"
+                    checked={selectedIds.includes(link.id)}
+                    onChange={() => handleSelect(link.id)}
+                  />
+                </td>
                 <td className="py-3 px-4">
                   <p className="py-3 px-4 text-sm font-semibold text-slate-600">{link.id}</p>
                 </td>
