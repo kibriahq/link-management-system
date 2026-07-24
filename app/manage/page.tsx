@@ -335,7 +335,7 @@ export default function ManagePage() {
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2 group">
                     <span className="font-mono text-[#0050cb] font-semibold cursor-pointer">/{link.slug}</span>
-                    <button onClick={() => copyToClipboard(link.slug, baseUrl)} className="material-symbols-outlined text-sm text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">content_copy</button>
+                    <button onClick={() => copyToClipboard(link.slug, baseUrl)} className="material-symbols-outlined text-sm text-slate-400 sm:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">content_copy</button>
                   </div>
                 </td>
                 <td className="py-3 px-4">
@@ -360,7 +360,7 @@ export default function ManagePage() {
                         />
                         <button
                           onClick={() => handleEdit(link)}
-                          className="material-symbols-outlined text-sm absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 opacity-0 group-hover:opacity-100"
+                          className="material-symbols-outlined text-sm absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 sm:opacity-0 group-hover:opacity-100 cursor-pointer"
                         >
                           edit
                         </button>
@@ -499,44 +499,6 @@ export default function ManagePage() {
         </div>
       )}
 
-      {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <div className="bg-[#0066ff]/5 border border-[#0066ff]/20 p-6 rounded-2xl flex items-center gap-6">
-            <div className="w-12 h-12 bg-[#0066ff] rounded-xl flex items-center justify-center text-white">
-              <span className="material-symbols-outlined">auto_awesome</span>
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold text-slate-900">Optimization Tip</h3>
-              <p className="text-sm text-slate-600 mt-1">Your support-bot link is receiving high traffic from Germany. Consider localizing the destination page for better conversion.</p>
-            </div>
-            <button className="bg-[#0066ff] text-white py-2 px-4 rounded-xl text-sm font-semibold hover:opacity-90">View Insight</button>
-          </div>
-        </div>
-        <div>
-          <div className="bg-white border border-slate-200 p-4 rounded-xl h-full">
-            <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center justify-between">
-              Recent Edits
-              <span className="text-xs font-normal text-slate-400 cursor-pointer hover:text-slate-600">Clear all</span>
-            </h3>
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
-                <div>
-                  <p className="text-sm text-slate-800">Sarah Chen updated destination for <b>lnke.ng/v-launch</b></p>
-                  <span className="text-[11px] text-slate-400">14 mins ago</span>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <div className="w-2 h-2 rounded-full bg-slate-300 mt-1.5 shrink-0"></div>
-                <div>
-                  <p className="text-sm text-slate-800">New short URL created <b>lnke.ng/dev-portal</b></p>
-                  <span className="text-[11px] text-slate-400">2 hours ago</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div> */}
     </div>
   );
 }

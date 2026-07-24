@@ -222,7 +222,7 @@ export default function LogsPage() {
                           {item.links?.slug && (
                             <button
                               onClick={() => copyToClipboard(item.links.slug, baseUrl)}
-                              className="text-slate-400 opacity-0 transition-opacity group-hover:opacity-100"
+                              className="text-slate-400 sm:opacity-0 transition-opacity group-hover:opacity-100 cursor-pointer"
                               title="Copy short URL"
                             >
                               <Copy className="h-4 w-4" aria-hidden="true" />

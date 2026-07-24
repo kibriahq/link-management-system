@@ -197,7 +197,7 @@ export default function Dashboard() {
                         <div className="flex flex-col">
                           <div className="flex items-center gap-2 group">
                             <span className="text-sm font-semibold text-slate-900">/{link.slug}</span>
-                            <button onClick={() => copyToClipboard(link.slug, baseUrl)} className="material-symbols-outlined text-slate-300 cursor-pointer text-sm opacity-0 group-hover:opacity-100">content_copy</button>
+                            <button onClick={() => copyToClipboard(link.slug, baseUrl)} className="material-symbols-outlined text-slate-300 cursor-pointer text-sm sm:opacity-0 group-hover:opacity-100">content_copy</button>
                           </div>
                           <span className="text-[10px] text-slate-400 font-mono">ID: {link.id}</span>
                         </div>
