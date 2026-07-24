@@ -168,7 +168,7 @@ export default function ManagePage() {
         <div className="bg-white border border-slate-200 p-4 rounded-xl">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Clicks</span>
-            <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">link</span>
+            <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">ads_click</span>
           </div>
           <div className="font-mono text-2xl font-semibold text-slate-900">{activity.length.toLocaleString()}</div>
           <div className={`mt-2 flex items-center gap-1 text-xs font-bold ${clickGrowth.isPositive ? 'text-[#00655c]' : 'text-red-500'}`}>
@@ -180,7 +180,7 @@ export default function ManagePage() {
         <div className="bg-white border border-slate-200 p-4 rounded-xl">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Avg. CTR</span>
-            <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">ads_click</span>
+            <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">nest_heat_link_e</span>
           </div>
           <div className="font-mono text-2xl font-semibold text-slate-900">{ctr}%</div>
           <div className="mt-2 flex items-center gap-1 text-xs font-bold text-slate-400">

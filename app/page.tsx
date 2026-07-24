@@ -120,7 +120,7 @@ export default function Dashboard() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-slate-500">Active URLs</span>
-              <span className="material-symbols-outlined text-slate-400 text-sm">link</span>
+              <span className="material-symbols-outlined text-[#0066ff] bg-blue-50 p-1 rounded">link</span>
             </div>
             <div className="font-mono text-2xl font-semibold tracking-tight text-slate-900">{activeUrls.toLocaleString()}</div>
           </div>
