@@ -385,7 +385,7 @@ export default function ManagePage() {
                   </div>
                 </td>
                 <td className="py-3 px-4">
-                  <div className="text-sm text-slate-500 whitespace-nowrap">{new Date(link.createdAt).toLocaleDateString()}</div>
+                  <div className="text-sm text-slate-500 whitespace-nowrap">{new Date(link.lastChecked || link.createdAt).toLocaleDateString()}</div>
                 </td>
                 <td className="py-3 px-4 text-right">
                   <div className="flex justify-end gap-1">

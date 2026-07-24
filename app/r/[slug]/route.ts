@@ -38,6 +38,57 @@ async function logAnalytics(
   }
 }
 
+// Checks if the target URL is reachable. Marks it broken in DB if not.
+async function checkLinkHealth(
+  linkId: string | number,
+  targetUrl: string,
+): Promise<void> {
+  let isBroken = false;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+    let res: Response;
+    try {
+      res = await fetch(targetUrl, {
+        method: "HEAD",
+        redirect: "follow",
+        signal: controller.signal,
+      });
+      // Some servers don't support HEAD properly (405/501), retry with GET
+      if (res.status === 405 || res.status === 501) {
+        res = await fetch(targetUrl, {
+          method: "GET",
+          redirect: "follow",
+          signal: controller.signal,
+        });
+      }
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    isBroken = !res.ok;
+  } catch (error) {
+    // Network error, timeout, DNS failure, etc. -> treat as broken
+    isBroken = true;
+  }
+
+  try {
+    const supabase = await createClient();
+
+    await supabase
+      .from("links")
+      .update({
+        status: isBroken ? "broken" : "active",
+        last_checked_at: new Date().toISOString(),
+      })
+      .eq("id", linkId);
+  } catch (error) {
+    console.error("Error updating link status:", error);
+  }
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string }> },
@@ -69,7 +120,10 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  after(() => logAnalytics(id, request));
+  after(() => {
+    checkLinkHealth(id, url);
+    logAnalytics(id, request);
+  });
 
   return NextResponse.redirect(url, 307);
 }

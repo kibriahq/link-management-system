@@ -51,6 +51,7 @@ function transformLink(record: unknown): LinkItem {
     url: link.url as string | undefined,
     userId: link.user_id as string | undefined,
     createdAt: link.created_at as string,
+    lastChecked: link.last_checked_at as string | undefined,
     logs: (link.logs as []) || [],
     status: (link.status as 'active' | 'inactive' | 'broken') || 'active',
   };

@@ -5,6 +5,7 @@ export interface LinkItem {
   url?: string;
   userId?: string;
   createdAt: string;
+  lastChecked?: string | undefined;
   status?: 'active' | 'inactive' | 'broken';
   logs?: []
 }
