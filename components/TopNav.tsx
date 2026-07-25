@@ -57,7 +57,7 @@ export default function TopNav() {
               src="/avatar.png"
             />
 
-            <div className="absolute right-0 mt-1 bg-white shadow-lg rounded-lg py-2 flex-col z-50 text-left flex invisible group-hover:visible">
+            <div className="absolute right-0 mt-0 bg-white shadow-lg rounded-lg py-2 flex-col z-50 text-left flex invisible group-hover:visible">
               <a href="/settings" className="text-sm text-slate-600 hover:text-[#0050cb] hover:bg-blue-50 flex items-center gap-2 py-2 px-4">
                 <span style={{ fontSize: '20px' }} className="material-symbols-outlined text-sm">settings</span>
                 Settings

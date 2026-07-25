@@ -114,7 +114,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
     };
     init();
     return () => { cancelled = true; };
-  }, [authLoading]);
+  }, [authLoading, session]);
 
   const topActiveLinks = (length = 3) => {
     const sorted = [...links].sort((a, b) => (b.logs?.length || 0) - (a.logs?.length || 0));
