@@ -16,7 +16,8 @@ async function logAnalytics(
   linkId: string | number,
   request: Request,
 ): Promise<void> {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const userAgent = request.headers.get("user-agent");
   const country = request.headers.get("x-vercel-ip-country") ?? "unknown";
   const city = request.headers.get("x-vercel-ip-city") ?? "unknown";
@@ -93,37 +94,32 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = await params;
+  try {
+    const { slug } = await params;
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("links")
+      .select("url, id")
+      .eq("slug", slug)
+      .limit(1)
+      .single();
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/links?slug=eq.${slug}&select=url,id`,
-    {
-      headers: {
-        apikey: process.env.NEXT_PUBLIC_SUPABASE_PUB_KEY!,
-      },
-      // Next.js fetch cache - this is the correct caching layer for edge
-      next: {
-        revalidate: 3600, // refresh cache every hour
-        tags: [`link-${slug}`], // allows on-demand revalidation via revalidateTag()
-      },
-    },
-  );
+    if (error || !data) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    const { url, id } = data;
 
-  if (!res.ok) {
-    return NextResponse.json({ error: "Upstream error" }, { status: 502 });
+    after(() => {
+      checkLinkHealth(id, url);
+      logAnalytics(id, request);
+    });
+
+    return NextResponse.redirect(url, 307);
+  } catch (error) {
+    console.error("Error fetching link data:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-
-  const data = await res.json();
-  const { url, id } = data?.[0] ?? {};
-
-  if (!url || !id) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
-  after(() => {
-    checkLinkHealth(id, url);
-    logAnalytics(id, request);
-  });
-
-  return NextResponse.redirect(url, 307);
 }
