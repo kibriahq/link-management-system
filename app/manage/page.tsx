@@ -64,10 +64,14 @@ const toCsvCell = (value: unknown) => {
   return `"${text.replaceAll('"', '""')}"`;
 };
 
+const linksPerPage = 10;
+
 export default function ManagePage() {
   const { links, updateLink, deleteLink, activity } = useLinks();
   const [filter, setFilter] = useState<'active' | 'broken'>('active');
   const [filteredLinks, setFilteredLinks] = useState<LinkItem[]>([]);
+  const [renderLinks, setRenderLinks] = useState<LinkItem[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
   const [qrLink, setQrLink] = useState<LinkItem | null>(null);
@@ -96,6 +100,13 @@ export default function ManagePage() {
     setFilteredLinks(newFilteredLinks);
   }, [links, filter]);
 
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * linksPerPage;
+    const endIndex = startIndex + linksPerPage;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRenderLinks(filteredLinks.slice(startIndex, endIndex));
+  }, [filteredLinks, currentPage, linksPerPage]);
+
   const qrShortUrl = qrLink ? `${baseUrl}${qrLink.slug}` : '';
   const qrImageUrl = qrShortUrl
     ? `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=16&data=${encodeURIComponent(qrShortUrl)}`
@@ -111,7 +122,6 @@ export default function ManagePage() {
         .in("id", selectedIds);
 
       if (!error) {
-        // setFilteredLinks(filteredLinks.filter((link) => !selectedIds.includes(link.id)));
         setFilteredLinks((prev) =>
           prev.filter((row) => !selectedIds.includes(row.id))
         );
@@ -254,8 +264,8 @@ export default function ManagePage() {
               <span className="material-symbols-outlined text-sm">expand_more</span>
             </button>
           </div>
-          <div className="h-6 w-[1px] bg-slate-200"></div>
-          {/* <div className="flex items-center gap-2">
+          {/* <div className="h-6 w-[1px] bg-slate-200"></div>
+          <div className="flex items-center gap-2">
             <span className="text-sm text-slate-500">Filter by domain:</span>
             <select className="bg-transparent border-none focus:ring-0 text-sm font-semibold text-slate-900 cursor-pointer">
               <option>All Domains</option>
@@ -265,7 +275,7 @@ export default function ManagePage() {
           </div> */}
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-slate-500">Showing 1-{filteredLinks.length} of {links.length} links</span>
+          <span className="text-sm text-slate-500">Showing {Math.min((currentPage - 1) * linksPerPage + 1, filteredLinks.length)}-{Math.min(currentPage * linksPerPage, filteredLinks.length)} of {filteredLinks.length} links</span>
           <div className="flex bg-slate-100 p-1 rounded-xl">
             <button
               onClick={() => setFilter('active')}
@@ -294,12 +304,12 @@ export default function ManagePage() {
                   className="rounded-sm border-slate-300 text-[#0050cb] focus:ring-[#0050cb]/20"
                   type="checkbox"
                   checked={
-                    filteredLinks.length > 0 &&
-                    selectedIds.length === filteredLinks.length
+                    renderLinks.length > 0 &&
+                    selectedIds.length === renderLinks.length
                   }
                   onChange={(e) => {
                     if (e.target.checked) {
-                      setSelectedIds(filteredLinks.map((link) => link.id));
+                      setSelectedIds(renderLinks.map((link) => link.id));
                     } else {
                       setSelectedIds([]);
                     }
@@ -319,7 +329,7 @@ export default function ManagePage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filteredLinks.map((link) => (
+            {renderLinks.map((link) => (
               <tr key={link.id} className={`hover:bg-slate-50 transition-colors ${link.status === 'inactive' || link.status === 'broken' ? 'opacity-70 grayscale-[0.3]' : ''}`}>
                 <td className="py-3 px-4">
                   <input
@@ -418,17 +428,17 @@ export default function ManagePage() {
 
         <div className="bg-slate-50 px-4 py-3 flex items-center justify-between border-t border-slate-200">
           <div className="flex gap-2">
-            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50" disabled>
+            <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50" disabled={currentPage === 1}>
               Previous
             </button>
-            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+            <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(filteredLinks.length / linksPerPage)))} className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
               Next
             </button>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-500">Page</span>
-            <input disabled className="w-10 text-center py-1 border-slate-200 rounded-lg text-sm font-medium focus:ring-[#0050cb]/20 focus:border-[#0050cb]" type="text" value="1" />
-            <span className="text-sm text-slate-500">of {Math.ceil(links.length / 10)}</span>
+            <input disabled className="w-10 text-center py-1 border-slate-200 rounded-lg text-sm font-medium focus:ring-[#0050cb]/20 focus:border-[#0050cb]" type="text" value={currentPage} />
+            <span className="text-sm text-slate-500">of {Math.ceil(filteredLinks.length / linksPerPage)}</span>
           </div>
         </div>
       </div>

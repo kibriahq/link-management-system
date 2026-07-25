@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useInfo } from '@/lib/InfoContext';
 import { useLinks } from '@/lib/LinkContext';
 import agentToDevice from '@/utils/agentToDevice';
@@ -25,6 +25,18 @@ import {
 
 type DeviceFilter = 'all' | 'mobile' | 'desktop' | 'tablet' | 'bot';
 
+type ActivityItem = {
+  id: string|number;
+  device: string;
+  createdAt: string;
+  location?: string | null;
+  links: {
+    slug: string;
+    url?: string | null;
+    name?: string | null;
+  } | null;
+};
+
 const formatDateTime = (value: string) => {
   const date = new Date(value);
 
@@ -45,11 +57,16 @@ const deviceIcons: Record<Exclude<DeviceFilter, 'all'>, LucideIcon> = {
   bot: Bot,
 };
 
+const logsPerPage = 10;
+
 export default function LogsPage() {
   const { activity, loading } = useLinks();
   const { baseUrl } = useInfo();
   const [query, setQuery] = useState('');
   const [deviceFilter, setDeviceFilter] = useState<DeviceFilter>('all');
+  const [filteredActivity, setFilteredActivity] = useState<ActivityItem[]>([]);
+  const [renderLogs, setRenderLogs] = useState<ActivityItem[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -78,8 +95,27 @@ export default function LogsPage() {
       .slice(0, 4);
   }, [activity]);
 
-  const filteredActivity = useMemo(() => {
-    return activity.filter((item) => {
+  // const filteredActivityX = useMemo(() => {
+  //   return activity.filter((item) => {
+  //     const device = agentToDevice(item.device);
+  //     const slug = item.links?.slug || '';
+  //     const destination = item.links?.url || '';
+  //     const location = item.location || '';
+  //     const name = item.links?.name || '';
+
+  //     const matchesDevice = deviceFilter === 'all' || device === deviceFilter;
+  //     const matchesQuery = !normalizedQuery ||
+  //       slug.toLowerCase().includes(normalizedQuery) ||
+  //       destination.toLowerCase().includes(normalizedQuery) ||
+  //       location.toLowerCase().includes(normalizedQuery) ||
+  //       name.toLowerCase().includes(normalizedQuery);
+
+  //     return matchesDevice && matchesQuery;
+  //   });
+  // }, [activity, deviceFilter, normalizedQuery]);
+
+  useEffect(() => {
+    const filtered = activity.filter((item) => {
       const device = agentToDevice(item.device);
       const slug = item.links?.slug || '';
       const destination = item.links?.url || '';
@@ -87,8 +123,7 @@ export default function LogsPage() {
       const name = item.links?.name || '';
 
       const matchesDevice = deviceFilter === 'all' || device === deviceFilter;
-      const matchesQuery =
-        !normalizedQuery ||
+      const matchesQuery = !normalizedQuery ||
         slug.toLowerCase().includes(normalizedQuery) ||
         destination.toLowerCase().includes(normalizedQuery) ||
         location.toLowerCase().includes(normalizedQuery) ||
@@ -96,7 +131,18 @@ export default function LogsPage() {
 
       return matchesDevice && matchesQuery;
     });
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFilteredActivity(filtered);
   }, [activity, deviceFilter, normalizedQuery]);
+
+
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * logsPerPage;
+    const endIndex = startIndex + logsPerPage;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRenderLogs(filteredActivity.slice(startIndex, endIndex));
+  }, [filteredActivity, currentPage, logsPerPage]);
 
   const latestActivity = activity[0];
   const uniqueLinks = new Set(activity.map((item) => item.links?.slug).filter(Boolean)).size;
@@ -166,7 +212,7 @@ export default function LogsPage() {
           <div className="flex flex-col gap-4 border-b border-slate-100 p-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Activity Feed</h2>
-              <p className="text-xs text-slate-500 mt-1">Showing {filteredActivity.length.toLocaleString()} of {activity.length.toLocaleString()} log events</p>
+              <p className="text-xs text-slate-500 mt-1">Showing {Math.min((currentPage - 1) * logsPerPage + 1, filteredActivity.length)}-{Math.min(currentPage * logsPerPage, filteredActivity.length)} of {filteredActivity.length} log events</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {(['all', 'mobile', 'desktop', 'tablet', 'bot'] as DeviceFilter[]).map((device) => (
@@ -174,8 +220,8 @@ export default function LogsPage() {
                   key={device}
                   onClick={() => setDeviceFilter(device)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${deviceFilter === device
-                      ? 'bg-[#0050cb] text-white'
-                      : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'
+                    ? 'bg-[#0050cb] text-white'
+                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'
                     }`}
                 >
                   {device}
@@ -198,7 +244,7 @@ export default function LogsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredActivity.map((item) => {
+                {renderLogs.map((item) => {
                   const device = agentToDevice(item.device);
                   const slug = item.links?.slug || 'unknown';
                   const DeviceIcon = deviceIcons[device as Exclude<DeviceFilter, 'all'>] || Monitor;
@@ -221,7 +267,7 @@ export default function LogsPage() {
                           <span className="font-mono text-sm font-semibold text-[#0050cb]">/{slug}</span>
                           {item.links?.slug && (
                             <button
-                              onClick={() => copyToClipboard(item.links.slug, baseUrl)}
+                              onClick={() => copyToClipboard(item.links?.slug ?? '', baseUrl)}
                               className="text-slate-400 sm:opacity-0 transition-opacity group-hover:opacity-100 cursor-pointer"
                               title="Copy short URL"
                             >
@@ -270,56 +316,72 @@ export default function LogsPage() {
                 })}
               </tbody>
             </table>
-          </div>
-
-          {!loading && filteredActivity.length === 0 && (
-            <div className="px-6 py-12 text-center">
-              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
-                <Radar className="h-5 w-5" aria-hidden="true" />
+            <div className="bg-slate-50 px-4 py-3 flex items-center justify-between border-t border-slate-200">
+              <div className="flex gap-2">
+                <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50" disabled={currentPage === 1}>
+                  Previous
+                </button>
+                <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(filteredActivity.length / logsPerPage)))} className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+                  Next
+                </button>
               </div>
-              <h3 className="text-sm font-semibold text-slate-900">No logs found</h3>
-              <p className="mt-1 text-sm text-slate-500">Try changing the search text or device filter.</p>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-500">Page</span>
+                <input disabled className="w-10 text-center py-1 border-slate-200 rounded-lg text-sm font-medium focus:ring-[#0050cb]/20 focus:border-[#0050cb]" type="text" value={currentPage} />
+                <span className="text-sm text-slate-500">of {Math.ceil(filteredActivity.length / logsPerPage)}</span>
+              </div>
             </div>
-          )}
+       
         </div>
 
-        <aside className="space-y-6">
-          <div className="bg-white border border-slate-200 rounded-xl p-6">
-            <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Device Mix</h2>
-            <div className="space-y-4">
-              {Object.entries(deviceCounts).map(([device, count]) => {
-                const percentage = activity.length ? Math.round((count / activity.length) * 100) : 0;
-
-                return (
-                  <div key={device}>
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="text-sm font-semibold capitalize text-slate-700">{device}</span>
-                      <span className="font-mono text-sm text-slate-500">{percentage}%</span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-[#0066ff]" style={{ width: `${percentage}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
+        {!loading && filteredActivity.length === 0 && (
+          <div className="px-6 py-12 text-center">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+              <Radar className="h-5 w-5" aria-hidden="true" />
             </div>
+            <h3 className="text-sm font-semibold text-slate-900">No logs found</h3>
+            <p className="mt-1 text-sm text-slate-500">Try changing the search text or device filter.</p>
           </div>
-
-          <div className="bg-white border border-slate-200 rounded-xl p-6">
-            <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Top Locations</h2>
-            <div className="space-y-3">
-              {topLocations.length > 0 ? topLocations.map(([location, count]) => (
-                <div key={location} className="flex items-center justify-between gap-3">
-                  <span className="truncate text-sm text-slate-700">{location}</span>
-                  <span className="font-mono text-sm font-semibold text-slate-900">{count}</span>
-                </div>
-              )) : (
-                <p className="text-sm text-slate-500">No location data recorded yet.</p>
-              )}
-            </div>
-          </div>
-        </aside>
+        )}
       </div>
+
+      <aside className="space-y-6">
+        <div className="bg-white border border-slate-200 rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Device Mix</h2>
+          <div className="space-y-4">
+            {Object.entries(deviceCounts).map(([device, count]) => {
+              const percentage = activity.length ? Math.round((count / activity.length) * 100) : 0;
+
+              return (
+                <div key={device}>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-sm font-semibold capitalize text-slate-700">{device}</span>
+                    <span className="font-mono text-sm text-slate-500">{percentage}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div className="h-full rounded-full bg-[#0066ff]" style={{ width: `${percentage}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Top Locations</h2>
+          <div className="space-y-3">
+            {topLocations.length > 0 ? topLocations.map(([location, count]) => (
+              <div key={location} className="flex items-center justify-between gap-3">
+                <span className="truncate text-sm text-slate-700">{location}</span>
+                <span className="font-mono text-sm font-semibold text-slate-900">{count}</span>
+              </div>
+            )) : (
+              <p className="text-sm text-slate-500">No location data recorded yet.</p>
+            )}
+          </div>
+        </div>
+      </aside>
     </div>
+    </div >
   );
 }
