@@ -35,7 +35,7 @@ export default function TopNav() {
       </div>
       <div className="flex items-center gap-4 lg:gap-6">
         <Link
-          href="/manage/new"
+          href="/generate/bulk"
           className="flex sm:flex bg-[#0066ff] text-white px-4 py-2 rounded-lg text-sm font-semibold items-center gap-2 hover:opacity-90 transition-opacity"
         >
           <span className="material-symbols-outlined text-sm">add</span>
