@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/lib/SidebarContext';
-import { ChartColumn, ChartLine, Layers2, LayoutDashboard, Link2, Settings, Telescope } from 'lucide-react';
+import { ChartLine, Layers2, LayoutDashboard, Link2, Settings, Telescope } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: <LayoutDashboard  fill="currentColor" size={21} /> },

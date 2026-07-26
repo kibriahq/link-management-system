@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from './supabase-client';
 import { LinkItem, InputLink, ActivityItem, User } from './types';
 import { redirect } from 'next/navigation';

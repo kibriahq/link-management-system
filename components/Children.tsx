@@ -1,16 +1,14 @@
 'use client'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useAuth } from "@/lib/AuthContext";
-import { LinkProvider } from "@/lib/LinkContext";
 import { SidebarProvider } from "@/lib/SidebarContext";
-import { AuthProvider } from "@/lib/AuthContext";
 import Sidebar from "@/components/Sidebar";
 import TopNav from "@/components/TopNav";
 import { useRouter, usePathname } from 'next/navigation';
 import LoadingScreen from './LoadingScreen';
 
 function Children({ children }: { children: React.ReactNode }) {
-    const { session, user, loading } = useAuth();
+    const { session, loading } = useAuth();
     const router = useRouter();
     const pathname = usePathname()
 

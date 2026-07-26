@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
 import { LinkProvider } from "@/lib/LinkContext";
-import { SidebarProvider } from "@/lib/SidebarContext";
 import { AuthProvider } from "@/lib/AuthContext";
-import Sidebar from "@/components/Sidebar";
-import TopNav from "@/components/TopNav";
 import Children from "@/components/Children";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import InfoProvider from "@/lib/InfoContext";
 import { ToastContainer } from 'react-toastify';
+import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
