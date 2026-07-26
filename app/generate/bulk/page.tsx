@@ -212,14 +212,14 @@ export default function BulkGeneratorPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 block">Destination URL</label>
+                <label className="text-sm font-semibold text-slate-700 block">Destination URLs</label>
                 <div className="relative">
                   <input
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg font-mono text-base focus:ring-2 focus:ring-[#0050cb]/20 focus:border-[#0050cb] outline-none transition-all"
                     type="url"
                     value={destinationUrl}
                     onChange={handleDestination}
-                    placeholder='e.g. https://yoursite.com/product/{product_slug}'
+                    placeholder='e.g. https://your.site/prod/1, https://your.site/prod/2, https://your.site/prod/3'
                   />
                 </div>
               </div>
