@@ -13,7 +13,7 @@ import { ToastContainer } from 'react-toastify';
 
 const inter = Inter({ subsets: ["latin"] });
 
-const metadata: Metadata = {
+export const metadata: Metadata = {
   title: "LinkEngine - Enterprise URL Management",
   description: "Manage your enterprise URLs with ease",
 };
